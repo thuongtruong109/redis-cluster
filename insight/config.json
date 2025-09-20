@@ -1,0 +1,40 @@
+{
+  "connections": [
+    {
+      "name": "Master",
+      "host": "master",
+      "port": 6379,
+      "username": "",
+      "password": "masterpass"
+    },
+    {
+      "name": "Slave_1",
+      "host": "slave_1",
+      "port": 6379,
+      "username": "",
+      "password": "slavepass"
+    },
+    {
+      "name": "Slave_2",
+      "host": "slave_2",
+      "port": 6379,
+      "username": "",
+      "password": "slavepass"
+    },
+    {
+      "name": "Sentinel_1",
+      "host": "sentinel_1",
+      "port": 26379
+    },
+    {
+      "name": "Sentinel_2",
+      "host": "sentinel_2",
+      "port": 26379
+    },
+    {
+      "name": "Sentinel_3",
+      "host": "sentinel_3",
+      "port": 26379
+    }
+  ]
+}

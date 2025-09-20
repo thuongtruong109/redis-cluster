@@ -1,0 +1,100 @@
+version: "3.9"
+
+networks:
+  redisnet:
+    driver: bridge
+
+services:
+  insight:
+    image: redislabs/redisinsight:latest
+    container_name: insight
+    volumes:
+      - ./insight/config.json:/db/config.json
+    ports:
+      - "8001:8001"
+    networks:
+      - redisnet
+
+  master:
+    image: redis:7.2
+    container_name: master
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - ./master/redis.conf:/usr/local/etc/redis/redis.conf
+      - master-data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - redisnet
+
+  slave_1:
+    image: redis:7.2
+    container_name: slave_1
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - ./slave_1/redis.conf:/usr/local/etc/redis/redis.conf
+      - slave_1-data:/data
+    depends_on:
+      - master
+    ports:
+      - "6380:6379"
+    networks:
+      - redisnet
+
+  slave_2:
+    image: redis:7.2
+    container_name: slave_2
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - ./slave_2/redis.conf:/usr/local/etc/redis/redis.conf
+      - slave_2-data:/data
+    depends_on:
+      - master
+    ports:
+      - "6381:6379"
+    networks:
+      - redisnet
+
+  sentinel_1:
+    image: redis:7.2
+    container_name: sentinel_1
+    command: ["redis-sentinel", "/usr/local/etc/redis/sentinel.conf"]
+    volumes:
+      - ./sentinel_1/sentinel.conf:/usr/local/etc/redis/sentinel.conf
+    ports:
+      - "26379:26379"
+    networks:
+      - redisnet
+    depends_on:
+      - master
+
+  sentinel_2:
+    image: redis:7.2
+    container_name: sentinel_2
+    command: ["redis-sentinel", "/usr/local/etc/redis/sentinel.conf"]
+    volumes:
+      - ./sentinel_2/sentinel.conf:/usr/local/etc/redis/sentinel.conf
+    ports:
+      - "26380:26379"
+    networks:
+      - redisnet
+    depends_on:
+      - master
+
+  sentinel_3:
+    image: redis:7.2
+    container_name: sentinel_3
+    command: ["redis-sentinel", "/usr/local/etc/redis/sentinel.conf"]
+    volumes:
+      - ./sentinel_3/sentinel.conf:/usr/local/etc/redis/sentinel.conf
+    ports:
+      - "26381:26379"
+    networks:
+      - redisnet
+    depends_on:
+      - master
+
+volumes:
+  master-data:
+  slave_1-data:
+  slave_2-data:
