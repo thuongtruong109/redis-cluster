@@ -1,67 +1,60 @@
 <div align="center">
-   <h1>🚦 Redis Cluster & Sentinel Playground <img src="https://img.shields.io/badge/Redis-Cluster-red?logo=redis" alt="Redis" height="28"/> <img src="https://img.shields.io/badge/Sentinel-HA-blue?logo=redis" alt="Sentinel" height="28"/></h1>
-   <p>
-      <img src="https://img.shields.io/badge/Docker-Compose-blue?logo=docker" alt="Docker Compose"/>
-      <img src="https://img.shields.io/badge/RedisInsight-UI-orange?logo=redis" alt="RedisInsight"/>
-      <img src="https://img.shields.io/badge/RedisCommander-UI-green?logo=redis" alt="RedisCommander"/>
-      <img src="https://img.shields.io/badge/License-MIT-brightgreen.svg" alt="License"/>
-      <img src="https://img.shields.io/github/workflow/status/thuongtruong109/redis-cluster/CI?label=CI" alt="CI Status"/>
-   </p>
-   <p>
-      <img src="https://img.icons8.com/color/48/000000/redis.png" height="40"/>
-      <img src="https://img.icons8.com/color/48/000000/docker.png" height="40"/>
-      <img src="https://img.icons8.com/color/48/000000/console.png" height="40"/>
-   </p>
+  <h1>🚦 Redis Cluster & Sentinel Playground</h1>
+  <p>
+    <img src="https://img.shields.io/badge/Redis-Cluster-red?logo=redis" alt="Redis" height="28"/>
+    <img src="https://img.shields.io/badge/Sentinel-HA-blue?logo=redis" alt="Sentinel" height="28"/>
+  </p>
+  <p>
+    <img src="https://img.shields.io/badge/Docker-Compose-blue?logo=docker" alt="Docker Compose"/>
+    <img src="https://img.shields.io/badge/RedisInsight-UI-orange?logo=redis" alt="RedisInsight"/>
+    <img src="https://img.shields.io/badge/RedisCommander-UI-green?logo=redis" alt="RedisCommander"/>
+    <img src="https://img.shields.io/badge/License-MIT-brightgreen.svg" alt="License"/>
+    <img src="https://img.shields.io/github/workflow/status/thuongtruong109/redis-cluster/CI?label=CI" alt="CI Status"/>
+  </p>
+  <p>
+    <img src="https://img.icons8.com/color/48/000000/redis.png" height="40"/>
+    <img src="https://img.icons8.com/color/48/000000/docker.png" height="40"/>
+    <img src="https://img.icons8.com/color/48/000000/console.png" height="40"/>
+  </p>
 </div>
+
+---
 
 # 🚀 Redis Sentinel & Cluster Playground
 
-<p align="center">
-   <b>Practice and experiment with High-Availability (HA) and Sharding using Redis, Sentinel, and Cluster via Docker Compose</b>
-</p>
+> **Practice and experiment with High-Availability (HA) and Sharding using Redis, Sentinel, and Cluster via Docker Compose.**
 
 ---
 
-## 📝 Project Description
+## 📝 Overview
 
-This project provides a comprehensive environment for learning, testing, and deploying Redis in two main modes: Redis Sentinel (for High Availability) and Redis Cluster (for Sharding & High Availability). The goal is to help users easily experiment, validate, monitor, optimize, and integrate Redis into real-world systems.
+This project provides a comprehensive, ready-to-run environment for learning, testing, and deploying Redis in two main modes:
 
-### Key Features
+- **Redis Sentinel** (for High Availability)
+- **Redis Cluster** (for Sharding & High Availability)
 
-- **Quickly bootstrap Redis Sentinel and Redis Cluster environments** using Docker Compose: includes 1 master, multiple slaves, multiple sentinels, and a 6-node cluster (3 masters, 3 replicas).
-- **Automation scripts** for health checks, failover simulation, backup, cluster slot rebalancing, security and performance testing.
-- **Integrated monitoring and alerting tools**: Prometheus, Grafana, Redis Commander, RedisInsight, with support for Slack, Email, and Telegram notifications, and centralized logging.
-- **CI/CD support**: Easily integrate with GitHub Actions/GitLab CI for automated testing, deployment, rollback, and reporting.
-- **Real-world application demos**: Connect Redis to Node.js, Python, Java, etc. Use Redis for caching, pub/sub, queueing, session storage, and rate limiting.
-- **Advanced guides and extensions**: Kubernetes integration (Helm, StatefulSet, Operator), automated cloud backup/restore, cost optimization, Sentinel vs Cluster comparison, and evaluation of Redis as a Service solutions.
-
-### Who is this for?
-
-- DevOps engineers, backend developers, system architects, students, or anyone who wants to learn, experiment, or deploy Redis in a practical environment.
+**Goal:** Help users easily experiment, validate, monitor, optimize, and integrate Redis into real-world systems.
 
 ---
 
-This project provides a ready-to-run **Redis Sentinel** and **Redis Cluster** environment using Docker Compose. It includes:
+## ✨ Features
 
-- A Sentinel-based Redis HA setup (master, 2 replicas, 3 sentinels)
-- A 6-node Redis Cluster (sharding, failover)
-- Redis Commander & RedisInsight for management
-
----
-
-## Table of Contents
-
-1. [Project Structure](#project-structure)
-2. [Quick Start](#quick-start)
-3. [Sentinel Mode](#sentinel-mode)
-4. [Cluster Mode](#cluster-mode)
-5. [Failover Test](#failover-test)
-6. [Troubleshooting: Line Endings](#troubleshooting-line-endings)
-7. [Useful Commands](#useful-commands)
+- **Quick Bootstrap:** Launch Redis Sentinel and Cluster environments with Docker Compose.
+- **Automation Scripts:** Health checks, failover simulation, backup, cluster slot rebalancing, security, and performance testing.
+- **Integrated Monitoring:** Prometheus, Grafana, Redis Commander, RedisInsight, with Slack, Email, Telegram notifications, and centralized logging.
+- **CI/CD Ready:** Integrate with GitHub Actions/GitLab CI for automated testing, deployment, rollback, and reporting.
+- **Real-World Demos:** Connect Redis to Node.js, Python, Java, etc. Use Redis for caching, pub/sub, queueing, session storage, and rate limiting.
+- **Advanced Guides:** Kubernetes integration (Helm, StatefulSet, Operator), automated cloud backup/restore, cost optimization, Sentinel vs Cluster comparison, and evaluation of Redis as a Service solutions.
 
 ---
 
-## 🗂️ Project Structure
+## 👤 Who Is This For?
+
+- DevOps engineers, backend developers, system architects, students, or anyone wanting to learn, experiment, or deploy Redis in a practical environment.
+
+---
+
+## 📁 Project Structure
 
 ```
 redis-cluster/
@@ -80,20 +73,53 @@ redis-cluster/
 
 ---
 
+## 🏗️ Architecture
+
+```
+                ┌──────────────┐
+                │  Sentinel 1  │
+                └──────┬───────┘
+                       │
+ ┌───────────────┐ ┌────▼─────┐ ┌───────────────┐
+ │  Sentinel 2   │ │  Master  │ │  Sentinel 3   │
+ └───────────────┘ │redis-6379│ └───────────────┘
+                   │ password │
+                   └────┬─────┘
+                        │
+         ┌──────────────┴──────────────┐
+         │                             │
+    ┌────▼──────┐                ┌─────▼─────┐
+    │  Slave 1  │                │  Slave 2  │
+    │redis-6380 │                │redis-6381 │
+    └───────────┘                └───────────┘
+```
+
+## 📚 Table of Contents
+
+1. [Quick Start](#-quick-start)
+2. [Sentinel Mode](#-sentinel-mode)
+3. [Cluster Mode](#-cluster-mode)
+4. [Failover Test](#-failover-test-sentinel)
+5. [Troubleshooting: Line Endings](#-troubleshooting-line-endings)
+6. [Useful Commands](#-useful-commands)
+
+---
+
 ## ⚡ Quick Start
 
-### 🛡️ 1. Sentinel Mode (HA, failover)
+### 1️⃣ Sentinel Mode (HA, failover)
 
 ```bash
 # Start Sentinel/replica/master/commander
 docker-compose up -d
 ```
 
-### 🗃️ 2. Cluster Mode (sharding, failover)
+### 2️⃣ Cluster Mode (sharding, failover)
 
 ```bash
 # Start 6 Redis nodes + RedisInsight
 docker-compose -f docker-compose.cluster.yml up -d
+
 # Create cluster (run once):
 chmod +x cluster.sh
 ./cluster.sh
@@ -103,14 +129,14 @@ chmod +x cluster.sh
 
 ## 🛡️ Sentinel Mode
 
-- **Master**: `redis-master` (port 6379, password: `masterpass`)
-- **Replicas**: `slave_1` (6380), `slave_2` (6381)
-- **Sentinels**: `sentinel_1` (26379), `sentinel_2` (26380), `sentinel_3` (26381)
-- **Redis Commander**: [http://localhost:8081](http://localhost:8081)
+- **Master:** `redis-master` (port 6379, password: `masterpass`)
+- **Replicas:** `slave_1` (6380), `slave_2` (6381)
+- **Sentinels:** `sentinel_1` (26379), `sentinel_2` (26380), `sentinel_3` (26381)
+- **Redis Commander:** [http://localhost:8081](http://localhost:8081)
 
 ### 🔑 Access Redis
 
-```
+```bash
 docker exec -it redis-master redis-cli -a masterpass
 docker exec -it slave_1 redis-cli -a masterpass
 docker exec -it sentinel_1 redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster
@@ -120,12 +146,12 @@ docker exec -it sentinel_1 redis-cli -p 26379 SENTINEL get-master-addr-by-name m
 
 ## 🗃️ Cluster Mode
 
-- **Nodes**: `redis-node1` ... `redis-node6` (ports 7001-7006)
-- **RedisInsight**: [http://localhost:8001](http://localhost:8001)
+- **Nodes:** `redis-node1` ... `redis-node6` (ports 7001-7006)
+- **RedisInsight:** [http://localhost:8001](http://localhost:8001)
 
 ### 🛠️ Create Cluster
 
-```
+```bash
 chmod +x cluster.sh
 ./cluster.sh
 ```
@@ -140,8 +166,9 @@ You can use the provided script to simulate failover:
 # On Linux/WSL/Git Bash:
 chmod +x test-failover.sh
 ./test-failover.sh
-# On PowerShell:
 
+# On PowerShell:
+# (Manual steps below)
 ```
 
 Or run manually:
@@ -205,8 +232,22 @@ docker ps -a --format "table {{.Names}}\t{{.Status}}"
 docker-compose logs -f sentinel_1
 
 # Access Redis Commander
-open http://localhost:8081
+start http://localhost:8081
 
 # Access RedisInsight
-open http://localhost:8001
+start http://localhost:8001
 ```
+
+---
+
+## 📢 Tips
+
+- **Windows users:** Prefer WSL or Git Bash for scripts. For PowerShell, use manual steps.
+- **Security:** Change default passwords before using in production.
+- **Extend:** Add your own application containers to test integration with Redis.
+
+---
+
+## 📄 License
+
+[MIT](LICENSE)

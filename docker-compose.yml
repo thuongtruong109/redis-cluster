@@ -20,13 +20,13 @@ services:
       timeout: 3s
       retries: 5
     volumes:
-      - ./master/redis.conf:/etc/redis/redis.conf
+      - ./master/ha.conf:/etc/redis/redis.conf
       - master-data:/data
     ports:
       - "6379:6379"
     networks:
       redisnet:
-        ipv4_address: 172.28.0.10 # <--- static IP cho master
+        ipv4_address: 172.28.0.10
 
   slave_1:
     image: redis:7.2
@@ -57,6 +57,21 @@ services:
     networks:
       redisnet:
         ipv4_address: 172.28.0.12
+
+  slave_3:
+    image: redis:7.2
+    container_name: slave_3
+    command: ["redis-server", "/etc/redis/redis.conf"]
+    volumes:
+      - ./slave_3/redis.conf:/etc/redis/redis.conf
+      - slave_3-data:/data
+    depends_on:
+      - redis-master
+    ports:
+      - "6382:6379"
+    networks:
+      redisnet:
+        ipv4_address: 172.28.0.13
 
   sentinel_1:
     image: redis:7.2
@@ -114,3 +129,4 @@ volumes:
   master-data:
   slave_1-data:
   slave_2-data:
+  slave_3-data:

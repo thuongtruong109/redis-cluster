@@ -20,6 +20,13 @@
       "port": 6379,
       "password": "masterpass",
       "dbIndex": 0
+    },
+    {
+      "label": "slave3",
+      "host": "slave_3",
+      "port": 6379,
+      "password": "masterpass",
+      "dbIndex": 0
     }
   ]
 }
