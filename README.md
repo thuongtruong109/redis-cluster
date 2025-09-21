@@ -1,100 +1,212 @@
-# olf -> lf
+<div align="center">
+   <h1>🚦 Redis Cluster & Sentinel Playground <img src="https://img.shields.io/badge/Redis-Cluster-red?logo=redis" alt="Redis" height="28"/> <img src="https://img.shields.io/badge/Sentinel-HA-blue?logo=redis" alt="Sentinel" height="28"/></h1>
+   <p>
+      <img src="https://img.shields.io/badge/Docker-Compose-blue?logo=docker" alt="Docker Compose"/>
+      <img src="https://img.shields.io/badge/RedisInsight-UI-orange?logo=redis" alt="RedisInsight"/>
+      <img src="https://img.shields.io/badge/RedisCommander-UI-green?logo=redis" alt="RedisCommander"/>
+      <img src="https://img.shields.io/badge/License-MIT-brightgreen.svg" alt="License"/>
+      <img src="https://img.shields.io/github/workflow/status/thuongtruong109/redis-cluster/CI?label=CI" alt="CI Status"/>
+   </p>
+   <p>
+      <img src="https://img.icons8.com/color/48/000000/redis.png" height="40"/>
+      <img src="https://img.icons8.com/color/48/000000/docker.png" height="40"/>
+      <img src="https://img.icons8.com/color/48/000000/console.png" height="40"/>
+   </p>
+</div>
 
-Nếu bạn dùng Git Bash / WSL / Linux:
+# 🚀 Redis Sentinel & Cluster Playground
 
-dos2unix sentinel1.conf sentinel2.conf sentinel3.conf
-sed -i 's/\r$//' sentinel1.conf sentinel2.conf sentinel3.conf
+<p align="center">
+   <b>Practice and experiment with High-Availability (HA) and Sharding using Redis, Sentinel, and Cluster via Docker Compose</b>
+</p>
 
-Nếu bạn dùng PowerShell:
+---
 
-# chạy trong folder redis-cluster
+## 📝 Project Description
 
-(Get-Content sentinel1.conf -Raw) -replace "`r`n","`n" | Set-Content sentinel1.conf -NoNewline
-(Get-Content sentinel2.conf -Raw) -replace "`r`n","`n" | Set-Content sentinel2.conf -NoNewline
-(Get-Content sentinel3.conf -Raw) -replace "`r`n","`n" | Set-Content sentinel3.conf -NoNewline
+This project provides a comprehensive environment for learning, testing, and deploying Redis in two main modes: Redis Sentinel (for High Availability) and Redis Cluster (for Sharding & High Availability). The goal is to help users easily experiment, validate, monitor, optimize, and integrate Redis into real-world systems.
 
-Hoặc mở file bằng Notepad++ → Edit → EOL Conversion → Unix (LF) → Save.
+### Key Features
 
-6. Test Failover
+- **Quickly bootstrap Redis Sentinel and Redis Cluster environments** using Docker Compose: includes 1 master, multiple slaves, multiple sentinels, and a 6-node cluster (3 masters, 3 replicas).
+- **Automation scripts** for health checks, failover simulation, backup, cluster slot rebalancing, security and performance testing.
+- **Integrated monitoring and alerting tools**: Prometheus, Grafana, Redis Commander, RedisInsight, with support for Slack, Email, and Telegram notifications, and centralized logging.
+- **CI/CD support**: Easily integrate with GitHub Actions/GitLab CI for automated testing, deployment, rollback, and reporting.
+- **Real-world application demos**: Connect Redis to Node.js, Python, Java, etc. Use Redis for caching, pub/sub, queueing, session storage, and rate limiting.
+- **Advanced guides and extensions**: Kubernetes integration (Helm, StatefulSet, Operator), automated cloud backup/restore, cost optimization, Sentinel vs Cluster comparison, and evaluation of Redis as a Service solutions.
 
-Dừng master:
+### Who is this for?
 
-docker stop redis-master
+- DevOps engineers, backend developers, system architects, students, or anyone who wants to learn, experiment, or deploy Redis in a practical environment.
 
-→ Sentinel sẽ bầu chọn 1 replica thành master mới.
+---
 
-docker exec -it redis-master redis-cli -a mypassword INFO replication
-Replica:
+This project provides a ready-to-run **Redis Sentinel** and **Redis Cluster** environment using Docker Compose. It includes:
 
-bash
-Copy code
-docker exec -it redis-replica1 redis-cli -a mypassword INFO replication
+- A Sentinel-based Redis HA setup (master, 2 replicas, 3 sentinels)
+- A 6-node Redis Cluster (sharding, failover)
+- Redis Commander & RedisInsight for management
 
-Sentinel: check current master
+---
 
-bash
-Copy code
-docker exec -it sentinel1 redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster
+## Table of Contents
 
-Bạn sẽ thấy:
+1. [Project Structure](#project-structure)
+2. [Quick Start](#quick-start)
+3. [Sentinel Mode](#sentinel-mode)
+4. [Cluster Mode](#cluster-mode)
+5. [Failover Test](#failover-test)
+6. [Troubleshooting: Line Endings](#troubleshooting-line-endings)
+7. [Useful Commands](#useful-commands)
 
-1. "172.28.0.10"
-2. "6379"
+---
 
-3. Stop master
-   docker stop redis-master
+## 🗂️ Project Structure
 
-4. Xem log sentinel
+```
+redis-cluster/
+├── docker-compose.yml            # Sentinel/replica/master/commander
+├── docker-compose.cluster.yml    # Redis Cluster (6 nodes)
+├── cluster.sh                    # Helper to create cluster
+├── test-failover.sh              # Script to test Sentinel failover
+├── master/redis.conf             # Master config
+├── slave_1/redis.conf            # Replica 1 config
+├── slave_2/redis.conf            # Replica 2 config
+├── sentinel_1/sentinel.conf      # Sentinel 1 config
+├── sentinel_2/sentinel.conf      # Sentinel 2 config
+├── sentinel_3/sentinel.conf      # Sentinel 3 config
+└── redis-commander/config/       # Redis Commander config
+```
 
-Mở log của sentinel1 để theo dõi failover:
+---
 
-docker logs -f sentinel1
+## ⚡ Quick Start
 
-Bạn sẽ thấy các dòng như:
+### 🛡️ 1. Sentinel Mode (HA, failover)
 
-+switch-master mymaster 172.28.0.10 6379 172.28.0.11 6379
+```bash
+# Start Sentinel/replica/master/commander
+docker-compose up -d
+```
 
-→ tức là sentinel đã bầu redis-replica1 thành master mới.
+### 🗃️ 2. Cluster Mode (sharding, failover)
 
-4. Xác nhận master mới
+```bash
+# Start 6 Redis nodes + RedisInsight
+docker-compose -f docker-compose.cluster.yml up -d
+# Create cluster (run once):
+chmod +x cluster.sh
+./cluster.sh
+```
 
-Chạy lại lệnh:
+---
 
-docker exec -it sentinel1 redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster
+## 🛡️ Sentinel Mode
 
-Kết quả giờ sẽ trỏ sang 172.28.0.11 (hoặc .12 nếu replica2 được chọn).
+- **Master**: `redis-master` (port 6379, password: `masterpass`)
+- **Replicas**: `slave_1` (6380), `slave_2` (6381)
+- **Sentinels**: `sentinel_1` (26379), `sentinel_2` (26380), `sentinel_3` (26381)
+- **Redis Commander**: [http://localhost:8081](http://localhost:8081)
 
-5. Kiểm tra role trên replica
+### 🔑 Access Redis
 
-Ví dụ kiểm tra replica1:
+```
+docker exec -it redis-master redis-cli -a masterpass
+docker exec -it slave_1 redis-cli -a masterpass
+docker exec -it sentinel_1 redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster
+```
 
-docker exec -it redis-replica1 redis-cli -a mypassword INFO replication
+---
 
-Bạn sẽ thấy:
+## 🗃️ Cluster Mode
 
-role:master
+- **Nodes**: `redis-node1` ... `redis-node6` (ports 7001-7006)
+- **RedisInsight**: [http://localhost:8001](http://localhost:8001)
 
-6. Khởi động lại master cũ
-   docker start redis-master
+### 🛠️ Create Cluster
 
-Redis cũ sẽ tự động trở thành replica của master mới, Sentinel vẫn giữ cụm ở trạng thái ổn định.
+```
+chmod +x cluster.sh
+./cluster.sh
+```
 
-Kiểm tra network:
+---
 
-docker network inspect redisnet
+## 🔄 Failover Test (Sentinel)
 
-Xem container status & logs:
+You can use the provided script to simulate failover:
 
-docker ps -a --format "table {{.Names}}\t{{.Status}}"
-docker-compose logs -f sentinel1
-
-<!-- run shell script -->
-
-Cho quyền chạy (Linux/WSL/Git Bash):
-
+```bash
+# On Linux/WSL/Git Bash:
 chmod +x test-failover.sh
 ./test-failover.sh
+# On PowerShell:
 
-Nếu trên PowerShell thì chạy:
+```
 
-bash ./test-failover.sh
+Or run manually:
+
+1. **Check current master:**
+   ```bash
+   docker exec -it sentinel_1 redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster
+   ```
+2. **Stop master:**
+   ```bash
+   docker stop redis-master
+   ```
+3. **Check new master:**
+   ```bash
+   docker exec -it sentinel_1 redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster
+   ```
+4. **Check replica role:**
+   ```bash
+   docker exec -it slave_1 redis-cli -a masterpass INFO replication | grep role
+   ```
+5. **Restart old master:**
+   ```bash
+   docker start redis-master
+   ```
+
+---
+
+## 🧰 Troubleshooting: Line Endings
+
+If you see errors with config files (especially on Windows), ensure files use **LF** (not CRLF) endings.
+
+### On Git Bash / WSL / Linux:
+
+```bash
+dos2unix sentinel_1/sentinel.conf sentinel_2/sentinel.conf sentinel_3/sentinel.conf
+sed -i 's/\r$//' sentinel_1/sentinel.conf sentinel_2/sentinel.conf sentinel_3/sentinel.conf
+```
+
+### On PowerShell:
+
+```powershell
+(Get-Content sentinel_1/sentinel.conf -Raw) -replace "`r`n","`n" | Set-Content sentinel_1/sentinel.conf -NoNewline
+(Get-Content sentinel_2/sentinel.conf -Raw) -replace "`r`n","`n" | Set-Content sentinel_2/sentinel.conf -NoNewline
+(Get-Content sentinel_3/sentinel.conf -Raw) -replace "`r`n","`n" | Set-Content sentinel_3/sentinel.conf -NoNewline
+```
+
+Or use Notepad++: Edit → EOL Conversion → Unix (LF) → Save.
+
+---
+
+## 🏷️ Useful Commands
+
+```bash
+# Check network
+docker network inspect redisnet
+
+# Check container status
+docker ps -a --format "table {{.Names}}\t{{.Status}}"
+
+# View logs
+docker-compose logs -f sentinel_1
+
+# Access Redis Commander
+open http://localhost:8081
+
+# Access RedisInsight
+open http://localhost:8001
+```

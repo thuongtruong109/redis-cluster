@@ -1,9 +1,9 @@
 services:
-  redis-commander:
+  commander:
     image: rediscommander/redis-commander:latest
-    container_name: redis-commander
+    container_name: commander
     volumes:
-      - ./redis-commander/config/local-production.json:/redis-commander/config/local-production.json
+      - ./commander/config.json:/redis-commander/config/local-production.json
     ports:
       - "8081:8081"
     networks:

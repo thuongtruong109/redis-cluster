@@ -1,33 +1,48 @@
 #!/bin/bash
 
-# Redis auth
-PASSWORD="mypassword"
+set -e
 
-echo "=== Step 1: Master hiện tại ==="
-docker exec -it sentinel1 redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
 
-echo
-echo "=== Step 2: Stop master ==="
-docker stop redis-master
-sleep 10   # đợi sentinel phát hiện và failover
+PASSWORD="masterpass"
+SENTINEL=sentinel_1
+REPLICA=slave_1
+MASTER=redis-master
 
-echo
-echo "=== Step 3: Master mới sau failover ==="
-docker exec -it sentinel1 redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster
+function info() {
+	echo -e "${YELLOW}$1${NC}"
+}
 
-echo
-echo "=== Step 4: Kiểm tra role của replica1 ==="
-docker exec -it redis-replica1 redis-cli -a $PASSWORD INFO replication | grep role
+function success() {
+	echo -e "${GREEN}$1${NC}"
+}
 
-echo
-echo "=== Step 5: Khởi động lại master cũ ==="
-docker start redis-master
+function error() {
+	echo -e "${RED}$1${NC}"
+}
+
+info "\n=== Step 1: Show current master ==="
+docker exec -it $SENTINEL redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster || error "Failed to get master!"
+
+info "\n=== Step 2: Stop master ==="
+docker stop $MASTER || error "Failed to stop master!"
+sleep 10
+
+info "\n=== Step 3: Show new master after failover ==="
+docker exec -it $SENTINEL redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster || error "Failed to get new master!"
+
+info "\n=== Step 4: Check role of replica ==="
+docker exec -it $REPLICA redis-cli -a $PASSWORD INFO replication | grep role || error "Failed to get replica role!"
+
+info "\n=== Step 5: Restart old master ==="
+docker start $MASTER || error "Failed to start master!"
 sleep 5
 
-echo
-echo "=== Step 6: Kiểm tra lại cluster ==="
-docker exec -it sentinel1 redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster
-docker exec -it redis-master redis-cli -a $PASSWORD INFO replication | grep role
+info "\n=== Step 6: Check cluster again ==="
+docker exec -it $SENTINEL redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster || error "Failed to get master!"
+docker exec -it $MASTER redis-cli -a $PASSWORD INFO replication | grep role || error "Failed to get master role!"
 
-echo
-echo "=== DONE ==="
+success "\n=== DONE: Sentinel failover test completed! ===\n"
