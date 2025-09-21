@@ -1,0 +1,25 @@
+{
+  "connections": [
+    {
+      "label": "master",
+      "host": "redis-master",
+      "port": 6379,
+      "password": "masterpass",
+      "dbIndex": 0
+    },
+    {
+      "label": "slave1",
+      "host": "slave_1",
+      "port": 6379,
+      "password": "masterpass",
+      "dbIndex": 0
+    },
+    {
+      "label": "slave2",
+      "host": "slave_2",
+      "port": 6379,
+      "password": "masterpass",
+      "dbIndex": 0
+    }
+  ]
+}

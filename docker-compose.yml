@@ -1,98 +1,114 @@
-version: "3.9"
-
-networks:
-  redisnet:
-    driver: bridge
-
 services:
-  insight:
-    image: redislabs/redisinsight:latest
-    container_name: insight
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: redis-commander
     volumes:
-      - ./insight/config.json:/db/config.json
+      - ./redis-commander/config/local-production.json:/redis-commander/config/local-production.json
     ports:
-      - "8001:8001"
+      - "8081:8081"
     networks:
       - redisnet
 
-  master:
+  redis-master:
     image: redis:7.2
-    container_name: master
-    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    container_name: redis-master
+    command: ["redis-server", "/etc/redis/redis.conf"]
+    restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "masterpass", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
     volumes:
-      - ./master/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./master/redis.conf:/etc/redis/redis.conf
       - master-data:/data
     ports:
       - "6379:6379"
     networks:
-      - redisnet
+      redisnet:
+        ipv4_address: 172.28.0.10 # <--- static IP cho master
 
   slave_1:
     image: redis:7.2
     container_name: slave_1
-    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    command: ["redis-server", "/etc/redis/redis.conf"]
     volumes:
-      - ./slave_1/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./slave_1/redis.conf:/etc/redis/redis.conf
       - slave_1-data:/data
     depends_on:
-      - master
+      - redis-master
     ports:
       - "6380:6379"
     networks:
-      - redisnet
+      redisnet:
+        ipv4_address: 172.28.0.11
 
   slave_2:
     image: redis:7.2
     container_name: slave_2
-    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    command: ["redis-server", "/etc/redis/redis.conf"]
     volumes:
-      - ./slave_2/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./slave_2/redis.conf:/etc/redis/redis.conf
       - slave_2-data:/data
     depends_on:
-      - master
+      - redis-master
     ports:
       - "6381:6379"
     networks:
-      - redisnet
+      redisnet:
+        ipv4_address: 172.28.0.12
 
   sentinel_1:
     image: redis:7.2
     container_name: sentinel_1
-    command: ["redis-sentinel", "/usr/local/etc/redis/sentinel.conf"]
+    command: ["redis-sentinel", "/etc/redis/sentinel.conf"]
     volumes:
-      - ./sentinel_1/sentinel.conf:/usr/local/etc/redis/sentinel.conf
+      - ./sentinel_1/sentinel.conf:/etc/redis/sentinel.conf
     ports:
       - "26379:26379"
     networks:
-      - redisnet
+      redisnet:
+        ipv4_address: 172.28.0.20
+    restart: always
     depends_on:
-      - master
+      - redis-master
 
   sentinel_2:
     image: redis:7.2
     container_name: sentinel_2
-    command: ["redis-sentinel", "/usr/local/etc/redis/sentinel.conf"]
+    command: ["redis-sentinel", "/etc/redis/sentinel.conf"]
     volumes:
-      - ./sentinel_2/sentinel.conf:/usr/local/etc/redis/sentinel.conf
+      - ./sentinel_2/sentinel.conf:/etc/redis/sentinel.conf
     ports:
       - "26380:26379"
     networks:
-      - redisnet
+      redisnet:
+        ipv4_address: 172.28.0.21
+    restart: always
     depends_on:
-      - master
+      - redis-master
 
   sentinel_3:
     image: redis:7.2
     container_name: sentinel_3
-    command: ["redis-sentinel", "/usr/local/etc/redis/sentinel.conf"]
+    command: ["redis-sentinel", "/etc/redis/sentinel.conf"]
     volumes:
-      - ./sentinel_3/sentinel.conf:/usr/local/etc/redis/sentinel.conf
+      - ./sentinel_3/sentinel.conf:/etc/redis/sentinel.conf
     ports:
       - "26381:26379"
     networks:
-      - redisnet
+      redisnet:
+        ipv4_address: 172.28.0.22
+    restart: always
     depends_on:
-      - master
+      - redis-master
+
+networks:
+  redisnet:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
 
 volumes:
   master-data:
