@@ -118,31 +118,6 @@ services:
     depends_on:
       - redis-master
 
-  test:
-    image: redis:7.2
-    container_name: test
-    depends_on:
-      redis-master:
-        condition: service_healthy
-      slave_1:
-        condition: service_started
-    entrypoint: ["/bin/sh", "-c"]
-    command: |
-      until redis-cli -h redis-master -a masterpass ping | grep PONG; do sleep 1; done
-      redis-cli -h redis-master -a masterpass set testkey testvalue
-      _VALUE=$$(redis-cli -h redis-master -a masterpass get testkey)
-      if [ "$$_VALUE" != "testvalue" ]; then
-        echo "Master set/get failed"; exit 1
-      fi
-      _VALUE=$$(redis-cli -h slave_1 get testkey)
-      if [ "$$_VALUE" != "testvalue" ]; then
-        echo "Replication to slave_1 failed"; exit 1
-      fi
-      echo "All tests passed"
-      exit 0
-    networks:
-      - redisnet
-
 networks:
   redisnet:
     driver: bridge

@@ -15,8 +15,8 @@
     <img src="https://img.icons8.com/color/48/000000/docker.png" height="40"/>
     <img src="https://img.icons8.com/color/48/000000/console.png" height="40"/>
   </p>
-   <h1>🚦 Redis Cluster & Sentinel Playground</h1>
-   <h3>Practice High-Availability (HA) and Sharding with Redis, Sentinel, and Cluster via Docker Compose</h3>
+   <h1>Redis Cluster HA simulator</h1>
+   <p>A complete, ready-to-run Redis Sentinel & Cluster environment with Docker Compose for learning, testing, and deploying Redis in real-world scenarios.</p>
 </div>
 
 ## 📝 Overview
@@ -222,3 +222,4 @@ start http://localhost:8001
 [MIT](LICENSE)
 
 <!-- https://medium.com/@jielim36/basic-docker-compose-and-build-a-redis-cluster-with-docker-compose-0313f063afb6 -->
+<!-- https://dev.to/hedgehog/set-up-redis-diskless-replication-359 -->
