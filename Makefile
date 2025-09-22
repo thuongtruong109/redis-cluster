@@ -19,6 +19,9 @@ failover:
 integration:
 	bash ./tests/integration.sh
 
+backup:
+	bash ./scripts/backup.sh
+
 # cluster:
 # 	docker-compose -f docker-compose.cluster.yml up -d --force-recreate
 
