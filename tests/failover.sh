@@ -1,5 +1,4 @@
 #!/bin/bash
-
 set -e
 
 RED='\033[0;31m'
@@ -13,36 +12,45 @@ REPLICA=slave_1
 MASTER=redis-master
 
 function info() {
-	echo -e "${YELLOW}$1${NC}"
+    echo -e "${YELLOW}$1${NC}"
 }
 
 function success() {
-	echo -e "${GREEN}$1${NC}"
+    echo -e "${GREEN}$1${NC}"
 }
 
 function error() {
-	echo -e "${RED}$1${NC}"
+    echo -e "${RED}$1${NC}"
+}
+
+# auto detect tty
+function docker_exec() {
+    if [ -t 1 ]; then
+        docker exec -it "$@"
+    else
+        docker exec "$@"
+    fi
 }
 
 info "\n=== Step 1: Show current master ==="
-docker exec -it $SENTINEL redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster || error "Failed to get master!"
+docker_exec $SENTINEL redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster || error "Failed to get master!"
 
 info "\n=== Step 2: Stop master ==="
 docker stop $MASTER || error "Failed to stop master!"
 sleep 10
 
 info "\n=== Step 3: Show new master after failover ==="
-docker exec -it $SENTINEL redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster || error "Failed to get new master!"
+docker_exec $SENTINEL redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster || error "Failed to get new master!"
 
 info "\n=== Step 4: Check role of replica ==="
-docker exec -it $REPLICA redis-cli -a $PASSWORD INFO replication | grep role || error "Failed to get replica role!"
+docker_exec $REPLICA redis-cli -a $PASSWORD INFO replication | grep role || error "Failed to get replica role!"
 
 info "\n=== Step 5: Restart old master ==="
 docker start $MASTER || error "Failed to start master!"
 sleep 5
 
 info "\n=== Step 6: Check cluster again ==="
-docker exec -it $SENTINEL redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster || error "Failed to get master!"
-docker exec -it $MASTER redis-cli -a $PASSWORD INFO replication | grep role || error "Failed to get master role!"
+docker_exec $SENTINEL redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster || error "Failed to get master!"
+docker_exec $MASTER redis-cli -a $PASSWORD INFO replication | grep role || error "Failed to get master role!"
 
 success "\n=== DONE: Sentinel failover test completed! ===\n"
