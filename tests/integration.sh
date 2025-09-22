@@ -9,6 +9,11 @@ for host in slave_1 slave_2 slave_3; do
   until docker exec $host redis-cli -a masterpass ping | grep PONG; do sleep 1; done
 done
 
+echo "Waiting for sentinels to be available..."
+for sentinel in sentinel_1 sentinel_2 sentinel_3; do
+  until docker exec $sentinel redis-cli -p 26379 ping | grep PONG; do sleep 1; done
+done
+
 echo "Testing master set/get..."
 docker exec redis-master redis-cli -a masterpass set testkey testvalue
 VALUE=$(docker exec redis-master redis-cli -a masterpass get testkey)
@@ -26,11 +31,11 @@ done
 
 echo "Simulating master failure..."
 docker stop redis-master
-sleep 10
+sleep 30
 
 echo "Waiting for Sentinel to promote a new master..."
 NEW_MASTER=""
-for i in $(seq 1 60); do
+for i in $(seq 1 90); do  # Increased iterations for longer timeout
   for host in slave_1 slave_2 slave_3; do
     ROLE=$(docker exec $host redis-cli -a masterpass info replication | grep role:master || true)
     if [ "$ROLE" = "role:master" ]; then
@@ -73,10 +78,16 @@ done
 
 echo "Restarting old master..."
 docker start redis-master
-sleep 10
 
-echo "Checking old master is now a slave..."
-ROLE=$(docker exec redis-master redis-cli -a masterpass info replication | grep role:slave || true)
+echo "Waiting for old master to rejoin as slave..."
+for i in $(seq 1 30); do
+  ROLE=$(docker exec redis-master redis-cli -a masterpass info replication | grep role:slave || true)
+  if [ "$ROLE" = "role:slave" ]; then
+    break
+  fi
+  sleep 2
+done
+
 if [ "$ROLE" != "role:slave" ]; then
   echo "Old master did not rejoin as slave"; exit 1
 fi

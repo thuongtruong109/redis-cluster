@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  integration-test:
+  test:
     runs-on: ubuntu-latest
 
     services:
@@ -25,6 +25,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y docker-compose
+          sudo apt-get install -y make
 
       - name: Start Redis cluster
         run: docker-compose up -d
@@ -32,8 +33,11 @@ jobs:
       - name: Wait for Redis cluster to be ready
         run: sleep 20
 
+      - name: Run failover test
+        run: make failover
+
       - name: Run integration test
-        run: bash ./tests/integration.sh
+        run: make integration
 
       - name: Show logs if failed
         if: failure()
