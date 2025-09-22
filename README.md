@@ -1,5 +1,4 @@
 <div align="center">
-  <h1>🚦 Redis Cluster & Sentinel Playground</h1>
   <p>
     <img src="https://img.shields.io/badge/Redis-Cluster-red?logo=redis" alt="Redis" height="28"/>
     <img src="https://img.shields.io/badge/Sentinel-HA-blue?logo=redis" alt="Sentinel" height="28"/>
@@ -16,15 +15,9 @@
     <img src="https://img.icons8.com/color/48/000000/docker.png" height="40"/>
     <img src="https://img.icons8.com/color/48/000000/console.png" height="40"/>
   </p>
+   <h1>🚦 Redis Cluster & Sentinel Playground</h1>
+   <h3>Practice High-Availability (HA) and Sharding with Redis, Sentinel, and Cluster via Docker Compose</h3>
 </div>
-
----
-
-# 🚀 Redis Sentinel & Cluster Playground
-
-> **Practice and experiment with High-Availability (HA) and Sharding using Redis, Sentinel, and Cluster via Docker Compose.**
-
----
 
 ## 📝 Overview
 
@@ -35,8 +28,6 @@ This project provides a comprehensive, ready-to-run environment for learning, te
 
 **Goal:** Help users easily experiment, validate, monitor, optimize, and integrate Redis into real-world systems.
 
----
-
 ## ✨ Features
 
 - **Quick Bootstrap:** Launch Redis Sentinel and Cluster environments with Docker Compose.
@@ -46,13 +37,9 @@ This project provides a comprehensive, ready-to-run environment for learning, te
 - **Real-World Demos:** Connect Redis to Node.js, Python, Java, etc. Use Redis for caching, pub/sub, queueing, session storage, and rate limiting.
 - **Advanced Guides:** Kubernetes integration (Helm, StatefulSet, Operator), automated cloud backup/restore, cost optimization, Sentinel vs Cluster comparison, and evaluation of Redis as a Service solutions.
 
----
-
 ## 👤 Who Is This For?
 
 - DevOps engineers, backend developers, system architects, students, or anyone wanting to learn, experiment, or deploy Redis in a practical environment.
-
----
 
 ## 📁 Project Structure
 
@@ -70,8 +57,6 @@ redis-cluster/
 ├── sentinel_3/sentinel.conf      # Sentinel 3 config
 └── redis-commander/config/       # Redis Commander config
 ```
-
----
 
 ## 🏗️ Architecture
 
@@ -103,8 +88,6 @@ redis-cluster/
 5. [Troubleshooting: Line Endings](#-troubleshooting-line-endings)
 6. [Useful Commands](#-useful-commands)
 
----
-
 ## ⚡ Quick Start
 
 ### 1️⃣ Sentinel Mode (HA, failover)
@@ -125,8 +108,6 @@ chmod +x cluster.sh
 ./cluster.sh
 ```
 
----
-
 ## 🛡️ Sentinel Mode
 
 - **Master:** `redis-master` (port 6379, password: `masterpass`)
@@ -142,8 +123,6 @@ docker exec -it slave_1 redis-cli -a masterpass
 docker exec -it sentinel_1 redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster
 ```
 
----
-
 ## 🗃️ Cluster Mode
 
 - **Nodes:** `redis-node1` ... `redis-node6` (ports 7001-7006)
@@ -155,8 +134,6 @@ docker exec -it sentinel_1 redis-cli -p 26379 SENTINEL get-master-addr-by-name m
 chmod +x cluster.sh
 ./cluster.sh
 ```
-
----
 
 ## 🔄 Failover Test (Sentinel)
 
@@ -194,8 +171,6 @@ Or run manually:
    docker start redis-master
    ```
 
----
-
 ## 🧰 Troubleshooting: Line Endings
 
 If you see errors with config files (especially on Windows), ensure files use **LF** (not CRLF) endings.
@@ -217,8 +192,6 @@ sed -i 's/\r$//' sentinel_1/sentinel.conf sentinel_2/sentinel.conf sentinel_3/se
 
 Or use Notepad++: Edit → EOL Conversion → Unix (LF) → Save.
 
----
-
 ## 🏷️ Useful Commands
 
 ```bash
@@ -238,16 +211,14 @@ start http://localhost:8081
 start http://localhost:8001
 ```
 
----
-
 ## 📢 Tips
 
 - **Windows users:** Prefer WSL or Git Bash for scripts. For PowerShell, use manual steps.
 - **Security:** Change default passwords before using in production.
 - **Extend:** Add your own application containers to test integration with Redis.
 
----
-
 ## 📄 License
 
 [MIT](LICENSE)
+
+<!-- https://medium.com/@jielim36/basic-docker-compose-and-build-a-redis-cluster-with-docker-compose-0313f063afb6 -->
