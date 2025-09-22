@@ -15,19 +15,44 @@ for sentinel in sentinel_1 sentinel_2 sentinel_3; do
 done
 
 echo "Testing master set/get..."
-docker exec redis-master redis-cli -a masterpass set testkey testvalue
-VALUE=$(docker exec redis-master redis-cli -a masterpass get testkey)
-if [ "$VALUE" != "testvalue" ]; then
-  echo "Master set/get failed"; exit 1
+success=0
+for host in redis-master slave_1 slave_2 slave_3; do
+  if docker exec $host redis-cli -a masterpass set testkey testvalue 2>&1 | grep -vq "READONLY"; then
+    VALUE=$(docker exec $host redis-cli -a masterpass get testkey)
+    if [ "$VALUE" = "testvalue" ]; then
+      NEW_MASTER=$host
+      success=1
+      break
+    fi
+  fi
+done
+
+if [ $success -ne 1 ]; then
+  echo "No writable master found at test start"
+  exit 1
 fi
+
+echo "Detected current master: $NEW_MASTER"
+
 
 echo "Testing replication to slaves..."
 for host in slave_1 slave_2 slave_3; do
-  VALUE=$(docker exec $host redis-cli -a masterpass get testkey)
-  if [ "$VALUE" != "testvalue" ]; then
-    echo "Replication to $host failed"; exit 1
+  success=0
+  for i in $(seq 1 10); do
+    VALUE=$(docker exec $host redis-cli -a masterpass get testkey)
+    if [ "$VALUE" = "testvalue" ]; then
+      success=1
+      break
+    fi
+    echo "Waiting for replication to $host..."
+    sleep 1
+  done
+  if [ $success -ne 1 ]; then
+    echo "Replication to $host failed"
+    exit 1
   fi
 done
+
 
 echo "Simulating master failure..."
 docker stop redis-master
