@@ -3,25 +3,34 @@ set -e
 
 log() { echo "[$(date +'%H:%M:%S')] $*"; }
 
-log "Waiting for redis-master to be healthy..."
-until docker exec redis-master redis-cli -a masterpass ping 2>/dev/null | grep -q PONG; do
-  sleep 1
-done
-
-log "Waiting for slaves to be available..."
-for host in slave_1 slave_2 slave_3; do
-  until docker exec "$host" redis-cli -a masterpass ping 2>/dev/null | grep -q PONG; do
-    sleep 1
+wait_for_ready() {
+  CONTAINER=$1
+  PORT=$2
+  log "⏳ Waiting for $CONTAINER to be ready on port $PORT..."
+  for i in $(seq 1 30); do
+    if docker ps --filter "name=$CONTAINER" --filter "status=running" --format '{{.Names}}' | grep -q "$CONTAINER"; then
+      if docker exec "$CONTAINER" redis-cli -a masterpass -p "$PORT" ping 2>/dev/null | grep -q PONG; then
+        log "✅ $CONTAINER is ready"
+        return 0
+      fi
+    fi
+    sleep 2
   done
-done
+  log "❌ $CONTAINER did not become ready"
+  docker logs "$CONTAINER" || true
+  exit 1
+}
 
-log "Waiting for sentinels to be available..."
-for sentinel in sentinel_1 sentinel_2 sentinel_3; do
-  until docker exec "$sentinel" redis-cli -p 26379 ping 2>/dev/null | grep -q PONG; do
-    sleep 1
-  done
-done
+# --- Wait all services ready ---
+wait_for_ready redis-master 6379
+wait_for_ready slave_1 6379
+wait_for_ready slave_2 6379
+wait_for_ready slave_3 6379
+wait_for_ready sentinel_1 26379
+wait_for_ready sentinel_2 26379
+wait_for_ready sentinel_3 26379
 
+# --- Test master write ---
 log "Testing master set/get..."
 success=0
 for host in redis-master slave_1 slave_2 slave_3; do
@@ -34,13 +43,13 @@ for host in redis-master slave_1 slave_2 slave_3; do
     fi
   fi
 done
-
 if [ $success -ne 1 ]; then
   log "❌ No writable master found at test start"
   exit 1
 fi
 log "✅ Detected current master: $NEW_MASTER"
 
+# --- Check replication ---
 log "Testing replication to slaves..."
 for host in slave_1 slave_2 slave_3; do
   replicated=0
@@ -60,12 +69,13 @@ for host in slave_1 slave_2 slave_3; do
 done
 log "✅ Replication verified"
 
+# --- Simulate master failure ---
 log "Simulating master failure..."
 docker stop redis-master
 
 log "Waiting for Sentinel to promote a new master..."
 NEW_MASTER=""
-for i in $(seq 1 90); do   # ⬅️ Tăng timeout lên 180s
+for i in $(seq 1 60); do
   for host in slave_1 slave_2 slave_3; do
     ROLE=$(docker exec "$host" redis-cli -a masterpass info replication | grep "^role:" | cut -d: -f2 || true)
     if [ "$ROLE" = "master" ]; then
@@ -77,15 +87,7 @@ for i in $(seq 1 90); do   # ⬅️ Tăng timeout lên 180s
 done
 
 if [ -z "$NEW_MASTER" ]; then
-  log "⚠️ Sentinel did not elect a master in time"
-  log "📋 Debug Sentinel state:"
-  docker exec sentinel_1 redis-cli -p 26379 sentinel master mymaster || true
-  docker exec sentinel_1 redis-cli -p 26379 sentinel slaves mymaster || true
-  docker exec slave_1 redis-cli -a masterpass info replication | grep -E "role|master_host|master_link_status" || true
-  docker exec slave_2 redis-cli -a masterpass info replication | grep -E "role|master_host|master_link_status" || true
-  docker exec slave_3 redis-cli -a masterpass info replication | grep -E "role|master_host|master_link_status" || true
-
-  log "⚡ Forcing manual failover..."
+  log "⚠️ Sentinel did not elect a master in time, forcing manual failover..."
   docker exec sentinel_1 redis-cli -p 26379 sentinel failover mymaster || true
   sleep 10
   for host in slave_1 slave_2 slave_3; do
@@ -102,6 +104,7 @@ if [ -z "$NEW_MASTER" ]; then
 fi
 log "✅ New master is $NEW_MASTER"
 
+# --- Test write on new master ---
 log "Testing set/get on new master..."
 docker exec "$NEW_MASTER" redis-cli -a masterpass set failoverkey failovervalue
 VALUE=$(docker exec "$NEW_MASTER" redis-cli -a masterpass get failoverkey)
@@ -110,6 +113,7 @@ if [ "$VALUE" != "failovervalue" ]; then
   exit 1
 fi
 
+# --- Replication after failover ---
 log "Testing replication from new master to other slaves..."
 for host in slave_1 slave_2 slave_3; do
   if [ "$host" != "$NEW_MASTER" ]; then
@@ -131,6 +135,7 @@ for host in slave_1 slave_2 slave_3; do
 done
 log "✅ Replication after failover verified"
 
+# --- Restart old master ---
 log "Restarting old master..."
 docker start redis-master
 
@@ -144,11 +149,11 @@ for i in $(seq 1 30); do
   fi
   sleep 2
 done
-
 if [ $joined -ne 1 ]; then
   log "❌ Old master did not rejoin as slave"
   exit 1
 fi
+log "✅ Old master rejoined as slave"
 
 log "🎉 All integration tests passed"
 exit 0
