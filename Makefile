@@ -26,6 +26,17 @@ integration:
 backup:
 	bash ./scripts/backup.sh
 
+health:
+	chmod +x tests/health.sh
+
+	bash ./tests/health.sh
+
+# 	./tests/health.sh --basic
+# 	./tests/health.sh --full --report
+# 	./tests/health.sh --load-test
+# 	./tests/health.sh --metrics-only
+# 	./tests/health.sh --help
+
 # cluster:
 # 	docker-compose -f docker-compose.cluster.yml up -d --force-recreate
 
