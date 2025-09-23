@@ -1,42 +1,51 @@
+version: "3.9"
+
 services:
   redis-master:
     image: redis:7.2
     container_name: redis-master
     command: ["redis-server", "/etc/redis/redis.conf"]
-    healthcheck:
-      test: ["CMD", "redis-cli", "-a", "masterpass", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
     volumes:
       - ./master/ha.conf:/etc/redis/redis.conf
+    networks:
+      redisnet:
+        ipv4_address: 172.30.0.10
 
   slave_1:
     image: redis:7.2
     container_name: slave_1
     command: ["redis-server", "/etc/redis/redis.conf"]
     volumes:
-      - ./slave_1/redis.conf:/etc/redis/redis.conf
+      - ./slave.ci.conf:/etc/redis/redis.conf
     depends_on:
       - redis-master
+    networks:
+      redisnet:
+        ipv4_address: 172.30.0.11
 
   slave_2:
     image: redis:7.2
     container_name: slave_2
     command: ["redis-server", "/etc/redis/redis.conf"]
     volumes:
-      - ./slave_2/redis.conf:/etc/redis/redis.conf
+      - ./slave.ci.conf:/etc/redis/redis.conf
     depends_on:
       - redis-master
+    networks:
+      redisnet:
+        ipv4_address: 172.30.0.12
 
   slave_3:
     image: redis:7.2
     container_name: slave_3
     command: ["redis-server", "/etc/redis/redis.conf"]
     volumes:
-      - ./slave_3/redis.conf:/etc/redis/redis.conf
+      - ./slave.ci.conf:/etc/redis/redis.conf
     depends_on:
       - redis-master
+    networks:
+      redisnet:
+        ipv4_address: 172.30.0.13
 
   sentinel_1:
     image: redis:7.2
@@ -44,9 +53,11 @@ services:
     command: ["redis-sentinel", "/etc/redis/sentinel.conf"]
     volumes:
       - ./sentinel.ci.conf:/etc/redis/sentinel.conf
+    networks:
+      redisnet:
+        ipv4_address: 172.30.0.20
     depends_on:
-      redis-master:
-        condition: service_healthy
+      - redis-master
 
   sentinel_2:
     image: redis:7.2
@@ -54,9 +65,11 @@ services:
     command: ["redis-sentinel", "/etc/redis/sentinel.conf"]
     volumes:
       - ./sentinel.ci.conf:/etc/redis/sentinel.conf
+    networks:
+      redisnet:
+        ipv4_address: 172.30.0.21
     depends_on:
-      redis-master:
-        condition: service_healthy
+      - redis-master
 
   sentinel_3:
     image: redis:7.2
@@ -64,6 +77,15 @@ services:
     command: ["redis-sentinel", "/etc/redis/sentinel.conf"]
     volumes:
       - ./sentinel.ci.conf:/etc/redis/sentinel.conf
+    networks:
+      redisnet:
+        ipv4_address: 172.30.0.22
     depends_on:
-      redis-master:
-        condition: service_healthy
+      - redis-master
+
+networks:
+  redisnet:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/16

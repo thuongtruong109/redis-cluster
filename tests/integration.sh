@@ -88,8 +88,12 @@ done
 
 if [ -z "$NEW_MASTER" ]; then
   log "⚠️ Sentinel did not elect a master in time, forcing manual failover..."
+  docker exec sentinel_1 redis-cli -p 26379 sentinel reset mymaster
+  sleep 5
+  docker exec sentinel_1 redis-cli -p 26379 sentinel ckquorum mymaster || true
+  docker exec sentinel_1 redis-cli -p 26379 sentinel slaves mymaster || true
   docker exec sentinel_1 redis-cli -p 26379 sentinel failover mymaster || true
-  sleep 10
+  sleep 15
   for host in slave_1 slave_2 slave_3; do
     ROLE=$(docker exec "$host" redis-cli -a masterpass info replication | grep "^role:" | cut -d: -f2 || true)
     if [ "$ROLE" = "master" ]; then
