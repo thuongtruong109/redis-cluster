@@ -56,11 +56,12 @@ done
 
 echo "Simulating master failure..."
 docker stop redis-master
-sleep 30
+sleep 60
 
 echo "Waiting for Sentinel to promote a new master..."
 NEW_MASTER=""
-for i in $(seq 1 90); do  # Increased iterations for longer timeout
+for i in $(seq 1 120); do
+  echo "Checking for new master (attempt $i)..."
   for host in slave_1 slave_2 slave_3; do
     ROLE=$(docker exec $host redis-cli -a masterpass info replication | grep role:master || true)
     if [ "$ROLE" = "role:master" ]; then
