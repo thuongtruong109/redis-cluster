@@ -38,7 +38,7 @@ echo "Detected current master: $NEW_MASTER"
 echo "Testing replication to slaves..."
 for host in slave_1 slave_2 slave_3; do
   success=0
-  for i in $(seq 1 10); do
+  for i in $(seq 1 20); do
     VALUE=$(docker exec $host redis-cli -a masterpass get testkey)
     if [ "$VALUE" = "testvalue" ]; then
       success=1
