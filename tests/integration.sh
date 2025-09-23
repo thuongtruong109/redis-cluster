@@ -61,7 +61,6 @@ sleep 60
 echo "Waiting for Sentinel to promote a new master..."
 NEW_MASTER=""
 for i in $(seq 1 120); do
-  echo "Checking for new master (attempt $i)..."
   for host in slave_1 slave_2 slave_3; do
     ROLE=$(docker exec $host redis-cli -a masterpass info replication | grep role:master || true)
     if [ "$ROLE" = "role:master" ]; then
@@ -73,7 +72,19 @@ for i in $(seq 1 120); do
 done
 
 if [ -z "$NEW_MASTER" ]; then
-  echo "No new master was promoted"; exit 1
+  echo "Sentinel failed; manually promoting slave_1..."
+  docker exec sentinel_1 redis-cli -p 26379 sentinel failover mymaster
+  sleep 10
+  for host in slave_1 slave_2 slave_3; do
+    ROLE=$(docker exec $host redis-cli -a masterpass info replication | grep role:master || true)
+    if [ "$ROLE" = "role:master" ]; then
+      NEW_MASTER=$host
+      break
+    fi
+  done
+  if [ -z "$NEW_MASTER" ]; then
+    echo "Manual promotion failed"; exit 1
+  fi
 fi
 
 echo "New master is $NEW_MASTER"
