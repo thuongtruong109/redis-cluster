@@ -1,5 +1,4 @@
 #!/bin/sh
-
 set -e
 
 log() { echo "[$(date +'%H:%M:%S')] $*"; }
@@ -66,7 +65,7 @@ docker stop redis-master
 
 log "Waiting for Sentinel to promote a new master..."
 NEW_MASTER=""
-for i in $(seq 1 60); do
+for i in $(seq 1 90); do   # ⬅️ Tăng timeout lên 180s
   for host in slave_1 slave_2 slave_3; do
     ROLE=$(docker exec "$host" redis-cli -a masterpass info replication | grep "^role:" | cut -d: -f2 || true)
     if [ "$ROLE" = "master" ]; then
@@ -78,7 +77,15 @@ for i in $(seq 1 60); do
 done
 
 if [ -z "$NEW_MASTER" ]; then
-  log "⚠️ Sentinel did not elect a master in time, forcing manual failover..."
+  log "⚠️ Sentinel did not elect a master in time"
+  log "📋 Debug Sentinel state:"
+  docker exec sentinel_1 redis-cli -p 26379 sentinel master mymaster || true
+  docker exec sentinel_1 redis-cli -p 26379 sentinel slaves mymaster || true
+  docker exec slave_1 redis-cli -a masterpass info replication | grep -E "role|master_host|master_link_status" || true
+  docker exec slave_2 redis-cli -a masterpass info replication | grep -E "role|master_host|master_link_status" || true
+  docker exec slave_3 redis-cli -a masterpass info replication | grep -E "role|master_host|master_link_status" || true
+
+  log "⚡ Forcing manual failover..."
   docker exec sentinel_1 redis-cli -p 26379 sentinel failover mymaster || true
   sleep 10
   for host in slave_1 slave_2 slave_3; do

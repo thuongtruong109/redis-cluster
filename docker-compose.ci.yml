@@ -1,0 +1,69 @@
+services:
+  redis-master:
+    image: redis:7.2
+    container_name: redis-master
+    command: ["redis-server", "/etc/redis/redis.conf"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "masterpass", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    volumes:
+      - ./master/ha.conf:/etc/redis/redis.conf
+
+  slave_1:
+    image: redis:7.2
+    container_name: slave_1
+    command: ["redis-server", "/etc/redis/redis.conf"]
+    volumes:
+      - ./slave_1/redis.conf:/etc/redis/redis.conf
+    depends_on:
+      - redis-master
+
+  slave_2:
+    image: redis:7.2
+    container_name: slave_2
+    command: ["redis-server", "/etc/redis/redis.conf"]
+    volumes:
+      - ./slave_2/redis.conf:/etc/redis/redis.conf
+    depends_on:
+      - redis-master
+
+  slave_3:
+    image: redis:7.2
+    container_name: slave_3
+    command: ["redis-server", "/etc/redis/redis.conf"]
+    volumes:
+      - ./slave_3/redis.conf:/etc/redis/redis.conf
+    depends_on:
+      - redis-master
+
+  sentinel_1:
+    image: redis:7.2
+    container_name: sentinel_1
+    command: ["redis-sentinel", "/etc/redis/sentinel.conf"]
+    volumes:
+      - ./sentinel.ci.conf:/etc/redis/sentinel.conf
+    depends_on:
+      redis-master:
+        condition: service_healthy
+
+  sentinel_2:
+    image: redis:7.2
+    container_name: sentinel_2
+    command: ["redis-sentinel", "/etc/redis/sentinel.conf"]
+    volumes:
+      - ./sentinel.ci.conf:/etc/redis/sentinel.conf
+    depends_on:
+      redis-master:
+        condition: service_healthy
+
+  sentinel_3:
+    image: redis:7.2
+    container_name: sentinel_3
+    command: ["redis-sentinel", "/etc/redis/sentinel.conf"]
+    volumes:
+      - ./sentinel.ci.conf:/etc/redis/sentinel.conf
+    depends_on:
+      redis-master:
+        condition: service_healthy
