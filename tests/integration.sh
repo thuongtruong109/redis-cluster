@@ -99,9 +99,21 @@ done
 
 if [ -z "$NEW_MASTER" ]; then
   log "⚠️ Sentinel did not elect a master in time, forcing manual failover..."
+
+  # Đợi Sentinel bỏ redis-master (s_down) ra khỏi danh sách slaves
+  for i in $(seq 1 20); do
+    if ! docker exec sentinel_1 redis-cli -p 26379 sentinel slaves mymaster | grep -q "redis-master:6379"; then
+      log "ℹ️ redis-master removed from slave list"
+      break
+    fi
+    log "⏳ Waiting for redis-master to be purged from Sentinel state..."
+    sleep 3
+  done
+
+  # Ép failover
   docker exec sentinel_1 redis-cli -p 26379 sentinel failover mymaster || true
 
-  # Chờ tối đa 90s
+  # Chờ slave được promote
   for i in $(seq 1 45); do
     for host in slave_1 slave_2 slave_3; do
       ROLE=$(docker exec "$host" redis-cli -a masterpass info replication | grep "^role:" | cut -d: -f2 || true)
@@ -119,16 +131,9 @@ if [ -z "$NEW_MASTER" ]; then
     docker exec sentinel_1 redis-cli -p 26379 sentinel master mymaster || true
     log "🔍 Sentinel slaves state:"
     docker exec sentinel_1 redis-cli -p 26379 sentinel slaves mymaster || true
-
-    for host in slave_1 slave_2 slave_3; do
-      log "🔍 $host replication info:"
-      docker exec "$host" redis-cli -a masterpass info replication | grep -E "role|master_host|master_link_status" || true
-    done
-
     exit 1
   fi
 fi
-
 
 log "✅ New master is $NEW_MASTER"
 

@@ -12,60 +12,60 @@ jobs:
       redis-master:
         image: redis:7.2
         options: >-
-          --entrypoint redis-server
+          --entrypoint /bin/sh
           --health-cmd="redis-cli -a masterpass ping || exit 1"
           --health-interval=5s
           --health-timeout=3s
           --health-retries=5
-          /etc/redis/redis.conf
+          -c "exec redis-server /etc/redis/redis.conf"
         volumes:
           - ./master/ha.conf:/etc/redis/redis.conf
 
       slave_1:
         image: redis:7.2
         options: >-
-          --entrypoint redis-server
-          /etc/redis/redis.conf
+          --entrypoint /bin/sh
+          -c "exec redis-server /etc/redis/redis.conf"
         volumes:
           - ./slave_1/redis.conf:/etc/redis/redis.conf
 
       slave_2:
         image: redis:7.2
         options: >-
-          --entrypoint redis-server
-          /etc/redis/redis.conf
+          --entrypoint /bin/sh
+          -c "exec redis-server /etc/redis/redis.conf"
         volumes:
           - ./slave_2/redis.conf:/etc/redis/redis.conf
 
       slave_3:
         image: redis:7.2
         options: >-
-          --entrypoint redis-server
-          /etc/redis/redis.conf
+          --entrypoint /bin/sh
+          -c "exec redis-server /etc/redis/redis.conf"
         volumes:
           - ./slave_3/redis.conf:/etc/redis/redis.conf
 
       sentinel_1:
         image: redis:7.2
         options: >-
-          --entrypoint redis-sentinel
-          /etc/redis/sentinel.conf
+          --entrypoint /bin/sh
+          -c "exec redis-sentinel /etc/redis/sentinel.conf"
         volumes:
           - ./sentinel_1/sentinel.conf:/etc/redis/sentinel.conf
 
       sentinel_2:
         image: redis:7.2
         options: >-
-          --entrypoint redis-sentinel
-          /etc/redis/sentinel.conf
+          --entrypoint /bin/sh
+          -c "exec redis-sentinel /etc/redis/sentinel.conf"
         volumes:
           - ./sentinel_2/sentinel.conf:/etc/redis/sentinel.conf
 
       sentinel_3:
         image: redis:7.2
         options: >-
-          --entrypoint redis-sentinel
-          /etc/redis/sentinel.conf
+          --entrypoint /bin/sh
+          -c "exec redis-sentinel /etc/redis/sentinel.conf"
         volumes:
           - ./sentinel_3/sentinel.conf:/etc/redis/sentinel.conf
 
