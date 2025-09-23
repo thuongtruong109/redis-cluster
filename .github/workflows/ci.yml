@@ -28,16 +28,16 @@ jobs:
           sudo apt-get install -y make
 
       - name: Start Redis cluster
-        run: docker-compose -f docker-compose.yml -f docker-compose.ci.yml up -d
+        run: make ci
 
       - name: Wait for Redis cluster to be ready
         run: sleep 20
 
-      # - name: Run failover test
-      #   run: make failover
+      - name: Run failover test
+        run: make failover
 
-      - name: Run integration test
-        run: make integration
+      # - name: Run integration test
+      #   run: make integration
 
       - name: Show logs if failed
         if: failure()

@@ -7,6 +7,10 @@ start:
 	docker-compose down -v
 	docker-compose up -d --force-recreate
 
+ci:
+	docker-compose -f docker-compose.ci.yml down -v || true
+	docker-compose -f docker-compose.ci.yml up -d
+
 master:
 	docker exec -it sentinel_1 redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster
 
