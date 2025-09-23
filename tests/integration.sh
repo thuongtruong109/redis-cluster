@@ -88,24 +88,37 @@ done
 
 if [ -z "$NEW_MASTER" ]; then
   log "⚠️ Sentinel did not elect a master in time, forcing manual failover..."
-  docker exec sentinel_1 redis-cli -p 26379 sentinel reset mymaster
-  sleep 5
-  docker exec sentinel_1 redis-cli -p 26379 sentinel ckquorum mymaster || true
-  docker exec sentinel_1 redis-cli -p 26379 sentinel slaves mymaster || true
   docker exec sentinel_1 redis-cli -p 26379 sentinel failover mymaster || true
-  sleep 15
-  for host in slave_1 slave_2 slave_3; do
-    ROLE=$(docker exec "$host" redis-cli -a masterpass info replication | grep "^role:" | cut -d: -f2 || true)
-    if [ "$ROLE" = "master" ]; then
-      NEW_MASTER=$host
-      break
-    fi
+
+  # Chờ tối đa 90s
+  for i in $(seq 1 45); do
+    for host in slave_1 slave_2 slave_3; do
+      ROLE=$(docker exec "$host" redis-cli -a masterpass info replication | grep "^role:" | cut -d: -f2 || true)
+      if [ "$ROLE" = "master" ]; then
+        NEW_MASTER=$host
+        break 2
+      fi
+    done
+    sleep 2
   done
+
   if [ -z "$NEW_MASTER" ]; then
     log "❌ Manual promotion failed"
+    log "🔍 Sentinel master state:"
+    docker exec sentinel_1 redis-cli -p 26379 sentinel master mymaster || true
+    log "🔍 Sentinel slaves state:"
+    docker exec sentinel_1 redis-cli -p 26379 sentinel slaves mymaster || true
+
+    for host in slave_1 slave_2 slave_3; do
+      log "🔍 $host replication info:"
+      docker exec "$host" redis-cli -a masterpass info replication | grep -E "role|master_host|master_link_status" || true
+    done
+
     exit 1
   fi
 fi
+
+
 log "✅ New master is $NEW_MASTER"
 
 # --- Test write on new master ---
