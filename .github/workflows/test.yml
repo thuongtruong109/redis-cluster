@@ -28,7 +28,7 @@ jobs:
           sudo apt-get install -y make
 
       - name: Start Redis cluster
-        run: make ci
+        run: make start
 
       - name: Wait for Redis cluster to be ready
         run: sleep 20

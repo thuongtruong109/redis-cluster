@@ -1,15 +1,12 @@
-.PHONY: format start master slave failover integration
+.PHONY: format start master slave failover integration backup health
 
 format:
-	sed -i 's/\r$//' ha/sentinel.conf
+	@dos2unix Makefile
+	@sed -i 's/\r$$//' Makefile ha/sentinel.conf ha/slave.conf ha/master.conf
 
 start:
 	docker-compose down -v
 	docker-compose up -d --force-recreate
-
-ci:
-	docker-compose down -v || true
-	docker-compose -f docker-compose.ci.yml up -d
 
 master:
 	docker exec -it sentinel_1 redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster
@@ -28,7 +25,6 @@ backup:
 
 health:
 	chmod +x scripts/health.sh
-
 	bash ./scripts/health.sh
 
 # 	./tests/health.sh --basic
