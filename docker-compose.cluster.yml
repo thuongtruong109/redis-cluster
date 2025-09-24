@@ -1,5 +1,5 @@
 x-node-base: &node-base
-  image: redis-cluster-base:latest
+  image: thuongtruong1009/redis-cluster:latest
   build:
     context: .
     dockerfile: Dockerfile

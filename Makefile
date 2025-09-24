@@ -30,7 +30,7 @@ ha-health:
 
 clt:
 	docker-compose -f docker-compose.cluster.yml down -v
-	docker-compose -f docker-compose.cluster.yml up -d --force-recreate
+	docker-compose -f docker-compose.cluster.yml up -d --build
 
 clt-create:
 	docker exec -it node-1 redis-cli -a redispw --cluster create \
