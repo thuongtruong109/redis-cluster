@@ -4,47 +4,167 @@ on:
   push:
     branches: [main]
   pull_request:
+    branches: [main]
+
+env:
+  DOCKER_BUILDKIT: 1
+  COMPOSE_DOCKER_CLI_BUILD: 1
 
 jobs:
-  test:
+  lint-and-validate:
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    services:
-      docker:
-        image: docker:24.0.7
-        options: --privileged
+      - name: Validate Docker Compose file
+        run: |
+          docker compose config --quiet
+          echo "✅ Docker Compose file is valid"
+
+      - name: Check Redis configuration files
+        run: |
+          # Check if all required config files exist
+          for config in ha/master.conf ha/slave.conf ha/sentinel.conf commander/config.json; do
+            if [ ! -f "$config" ]; then
+              echo "❌ Missing configuration file: $config"
+              exit 1
+            fi
+          done
+          echo "✅ All configuration files present"
+
+  security-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "config"
+          hide-progress: false
+          format: "sarif"
+          output: "trivy-results.sarif"
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: "trivy-results.sarif"
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    needs: [lint-and-validate]
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Docker Compose
-        uses: docker/setup-buildx-action@v3
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y docker-compose
-          sudo apt-get install -y make
-
       - name: Start Redis cluster
-        run: make ci
+        run: |
+          docker compose up -d
+          sleep 30
 
-      - name: Wait for Redis cluster to be ready
-        run: sleep 20
+      - name: Wait for services to be ready
+        run: |
+          # Wait for master to be ready
+          timeout 60 bash -c 'until docker exec redis-master redis-cli -a masterpass ping; do sleep 2; done'
 
-      - name: Run failover test
-        run: make failover
+          # Wait for slaves to be ready
+          for i in 1 2 3; do
+            timeout 60 bash -c "until docker exec slave_$i redis-cli -a masterpass ping; do sleep 2; done"
+          done
 
-      # - name: Run integration test
-      #   run: make integration
+          # Wait for sentinels to be ready
+          for i in 1 2 3; do
+            timeout 60 bash -c "until docker exec sentinel_$i redis-cli -p 26379 ping; do sleep 2; done"
+          done
 
-      - name: Show logs if failed
+      - name: Run integration tests
+        run: |
+          chmod +x tests/integration.sh
+          bash tests/integration.sh
+
+      - name: Run failover tests
+        run: |
+          chmod +x tests/failover.sh
+          bash tests/failover.sh
+
+      - name: Run health checks
+        run: |
+          chmod +x scripts/health.sh
+          bash scripts/health.sh --basic
+
+      - name: Collect logs on failure
         if: failure()
         run: |
-          docker-compose ps
-          docker-compose logs
+          echo "=== Docker Compose Logs ==="
+          docker compose logs
 
-      - name: Shutdown cluster
+          echo "=== Container Status ==="
+          docker compose ps
+
+          echo "=== Network Status ==="
+          docker network ls
+          docker network inspect redis-cluster_redisnet || true
+
+      - name: Cleanup
         if: always()
-        run: docker-compose down -v
+        run: |
+          docker compose down -v
+          docker system prune -f
+
+  performance-tests:
+    runs-on: ubuntu-latest
+    needs: [integration-tests]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install redis-benchmark
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y redis-tools
+
+      - name: Start Redis cluster
+        run: |
+          docker compose up -d redis-master slave_1
+          sleep 20
+
+      - name: Run performance benchmarks
+        run: |
+          echo "🚀 Running performance benchmarks..."
+
+          # Benchmark writes on master
+          echo "=== Master Write Performance ==="
+          redis-benchmark -h localhost -p 6379 -a masterpass -t set -n 10000 -c 10 -q
+
+          # Benchmark reads on slave
+          echo "=== Slave Read Performance ==="
+          redis-benchmark -h localhost -p 6380 -a masterpass -t get -n 10000 -c 10 -q
+
+      - name: Cleanup performance test
+        if: always()
+        run: |
+          docker compose down -v
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: [integration-tests, performance-tests, security-scan]
+    if: always()
+
+    steps:
+      - name: Notify on success
+        if: ${{ needs.integration-tests.result == 'success' }}
+        run: |
+          echo "✅ All tests passed! Redis cluster is healthy."
+
+      - name: Notify on failure
+        if: ${{ needs.integration-tests.result == 'failure' }}
+        run: |
+          echo "❌ Tests failed! Check the logs for details."
