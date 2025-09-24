@@ -1,9 +1,5 @@
-- Deploy Redis Cluster, implement data sharding to improve scalability and fault tolerance.
-- Script to automatically initialize the cluster and assign slots.
 - Integrate health checks for each node, alert when a node is down.
 - Automatically add/remove nodes (scale out/in), script to automatically re-balance slots.
-
-- Write a script to check data consistency between nodes.
 - Automatically rollback when errors are detected.
 - Benchmark performance with redis-benchmark.
 
@@ -18,10 +14,8 @@
 - Script to check memory usage, latency, slowlog.
 
 - Connect the application to the cluster using a client that supports cluster mode.
-- Demo a real application using Redis Cluster (cache, pub/sub, queue).
+- Demo a real application using Redis Cluster (cache, pub/sub, message queue, session store, rate limiter.).
 - Use clients that support cluster/sentinel (ioredis, redis-py, Jedis, etc.).
-- Write demo app for cache, pub/sub, queue.
-- Integrate Redis as message queue, session store, rate limiter.
 - Write documentation for integrating Redis into popular frameworks.
 - Demo automatic failover without service interruption.
 - Build middleware cache with Redis.

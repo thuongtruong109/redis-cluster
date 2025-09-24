@@ -19,12 +19,11 @@ jobs:
 
       - name: Validate Docker Compose file
         run: |
-          docker compose config --quiet
+          docker-compose -f docker-compose.ha.yml config --quiet
           echo "✅ Docker Compose file is valid"
 
       - name: Check Redis configuration files
         run: |
-          # Check if all required config files exist
           for config in ha/master.conf ha/slave.conf ha/sentinel.conf commander/config.json; do
             if [ ! -f "$config" ]; then
               echo "❌ Missing configuration file: $config"
@@ -65,47 +64,44 @@ jobs:
 
       - name: Start Redis cluster
         run: |
-          docker compose up -d
+          docker-compose -f docker-compose.ha.yml up -d
           sleep 30
 
       - name: Wait for services to be ready
         run: |
-          # Wait for master to be ready
           timeout 60 bash -c 'until docker exec redis-master redis-cli -a masterpass ping; do sleep 2; done'
 
-          # Wait for slaves to be ready
           for i in 1 2 3; do
             timeout 60 bash -c "until docker exec slave_$i redis-cli -a masterpass ping; do sleep 2; done"
           done
 
-          # Wait for sentinels to be ready
           for i in 1 2 3; do
             timeout 60 bash -c "until docker exec sentinel_$i redis-cli -p 26379 ping; do sleep 2; done"
           done
 
-      - name: Run integration tests
+      - name: Run Replica integration tests
         run: |
-          chmod +x tests/integration.sh
-          bash tests/integration.sh
+          chmod +x tests/ha.sh
+          bash tests/ha.sh
 
-      - name: Run failover tests
+      - name: Run Replica failover tests
         run: |
-          chmod +x tests/failover.sh
-          bash tests/failover.sh
+          chmod +x tests/ha-failover.sh
+          bash tests/ha-failover.sh
 
-      - name: Run health checks
+      - name: Run Replica health checks
         run: |
-          chmod +x scripts/health.sh
-          bash scripts/health.sh --basic
+          chmod +x scripts/ha-health.sh
+          bash scripts/ha-health.sh --basic
 
       - name: Collect logs on failure
         if: failure()
         run: |
           echo "=== Docker Compose Logs ==="
-          docker compose logs
+          docker-compose -f docker-compose.ha.yml logs
 
           echo "=== Container Status ==="
-          docker compose ps
+          docker-compose -f docker-compose.ha.yml ps
 
           echo "=== Network Status ==="
           docker network ls
@@ -114,7 +110,7 @@ jobs:
       - name: Cleanup
         if: always()
         run: |
-          docker compose down -v
+          docker-compose -f docker-compose.ha.yml down -v
           docker system prune -f
 
   performance-tests:
@@ -133,25 +129,21 @@ jobs:
 
       - name: Start Redis cluster
         run: |
-          docker compose up -d redis-master slave_1
+          docker-compose -f docker-compose.ha.yml up -d redis-master slave_1
           sleep 20
 
       - name: Run performance benchmarks
         run: |
-          echo "🚀 Running performance benchmarks..."
-
-          # Benchmark writes on master
           echo "=== Master Write Performance ==="
           redis-benchmark -h localhost -p 6379 -a masterpass -t set -n 10000 -c 10 -q
 
-          # Benchmark reads on slave
           echo "=== Slave Read Performance ==="
           redis-benchmark -h localhost -p 6380 -a masterpass -t get -n 10000 -c 10 -q
 
       - name: Cleanup performance test
         if: always()
         run: |
-          docker compose down -v
+          docker-compose -f docker-compose.ha.yml down -v
 
   notify:
     runs-on: ubuntu-latest

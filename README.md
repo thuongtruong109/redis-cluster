@@ -1,21 +1,14 @@
 <div align="center">
   <p>
-    <img src="https://img.shields.io/badge/Redis-Cluster-red?logo=redis&logoColor=white" alt="Redis" height="28"/>
-    <img src="https://img.shields.io/badge/Sentinel-HA-blue?logo=redis&logoColor=white" alt="Sentinel" height="28"/>
+    <img src="https://img.shields.io/github/actions/workflow/status/thuongtruong109/redis-cluster/ci.yml?label=CI&logo=github" alt="CI Status" height="28"/>
     <img src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white" alt="Docker Compose" height="28"/>
-    <img src="https://img.shields.io/badge/RedisInsight-UI-orange?logo=redis&logoColor=white" alt="RedisInsight" height="28"/>
+    <img src="https://img.shields.io/badge/Cluster-Sharding-red?logo=redis&logoColor=white" alt="Redis" height="28"/>
+    <img src="https://img.shields.io/badge/Sentinel-HA-blue?logo=redis&logoColor=white" alt="Sentinel" height="28"/>
     <img src="https://img.shields.io/badge/RedisCommander-UI-green?logo=redis&logoColor=white" alt="RedisCommander" height="28"/>
     <img src="https://img.shields.io/badge/License-MIT-brightgreen.svg" alt="License" height="28"/>
-    <img src="https://img.shields.io/github/actions/workflow/status/thuongtruong109/redis-cluster/ci.yml?label=CI&logo=github" alt="CI Status" height="28"/>
   </p>
 
-  <p>
-    <img src="https://img.icons8.com/color/96/redis.png" height="60"/>
-    <img src="https://img.icons8.com/color/96/docker.png" height="60"/>
-    <img src="https://img.icons8.com/color/96/console.png" height="60"/>
-  </p>
-
-  <h1>🚀 Redis Cluster HA Simulator</h1>
+  <h1>🚀 Redis Cluster Replication Simulator</h1>
   <p><b>A complete, ready-to-run Redis Sentinel & Cluster environment with Docker Compose for learning, testing, and deploying Redis in real-world scenarios.</b></p>
 
   <img src="https://skillicons.dev/icons?i=redis,docker,bash,linux,github,gitlab" height="45"/>
@@ -32,19 +25,19 @@ This project provides a **comprehensive Redis playground** for:
 
 ## ✨ Features
 
-✅ **Quick Bootstrap** – Start Sentinel & Cluster modes in seconds with Docker Compose
-✅ **Automation Scripts** – Health checks, failover, backup, slot rebalancing, performance tests
-✅ **Monitoring Tools** – RedisInsight, Redis Commander, Prometheus, Grafana, Alerts (Slack/Email/Telegram)
-✅ **CI/CD Ready** – GitHub Actions/GitLab CI for automated testing & deployment
-✅ **Real-World Demos** – Integration with Node.js, Python, Java, etc. (caching, pub/sub, queues, sessions)
-✅ **Advanced Guides** – Kubernetes (Helm, StatefulSet, Operator), Cloud Backup/Restore, Security
+- ✅ **Quick Bootstrap** – Start Sentinel & Cluster modes in seconds with Docker Compose
+- ✅ **Automation Scripts** – Health checks, failover, backup, slot rebalancing, performance tests
+- ✅ **Monitoring Tools** – RedisInsight, Redis Commander, Prometheus, Grafana, Alerts (Slack/Email/Telegram)
+- ✅ **CI/CD Ready** – GitHub Actions/GitLab CI for automated testing & deployment
+- ✅ **Real-World Demos** – Integration with Node.js, Python, Java, etc. (caching, pub/sub, queues, sessions)
+- ✅ **Advanced Guides** – Kubernetes (Helm, StatefulSet, Operator), Cloud Backup/Restore, Security
 
 ## 👤 Who Is This For?
 
-👨‍💻 **Backend Devs** – Learn caching, pub/sub, queues
-🛠️ **DevOps/SREs** – Practice HA, failover, and monitoring
-🎓 **Students/Learners** – Hands-on Redis environment for study
-🏗️ **Architects** – Validate Redis integration into distributed systems
+- 👨‍💻 **Backend Devs** – Learn caching, pub/sub, queues
+- 🛠️ **DevOps/SREs** – Practice HA, failover, and monitoring
+- 🎓 **Students/Learners** – Hands-on Redis environment for study
+- 🏗️ **Architects** – Validate Redis integration into distributed systems
 
 ## 📁 Project Structure
 

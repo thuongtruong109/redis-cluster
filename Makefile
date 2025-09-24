@@ -1,38 +1,38 @@
-.PHONY: format start master slave failover integration backup health
+.PHONY: format ha ha-master ha-slave ha-test-failover ha-test ha-health clt clt-create clt-check clt-demo clt-test
 
 format:
 	@dos2unix Makefile
-	@sed -i 's/\r$$//' Makefile ha/sentinel.conf ha/slave.conf ha/master.conf
+	@sed -i 's/\r$$//' Makefile ha/sentinel.conf ha/slave.conf ha/master.conf configs/cluster.conf
 
-replica:
-	docker-compose down -v
-	docker-compose up -d --force-recreate
+ha:
+	docker-compose -f docker-compose.ha.yml down -v
+	docker-compose -f docker-compose.ha.yml up -d --force-recreate
 
-master:
+ha-master:
 	docker exec -it sentinel_1 redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster
 
-slave:
+ha-slave:
 	docker exec -it slave_1 redis-cli -a masterpass info replication
 
-failover:
-	bash ./tests/failover.sh
+ha-test-failover:
+	bash ./tests/ha-failover.sh
 
-integration:
-	bash ./tests/integration.sh
+ha-test:
+	bash ./tests/ha.sh
 
-backup:
+ha-backup:
 	bash ./scripts/backup.sh
 
-health:
+ha-health:
 	@echo "Flags: --basic, --full --report, --load-test, --metrics-only, --help"
 	chmod +x scripts/health.sh
 	bash ./scripts/health.sh
 
-cluster:
+clt:
 	docker-compose -f docker-compose.cluster.yml down -v
 	docker-compose -f docker-compose.cluster.yml up -d --force-recreate
 
-cluster-create:
+clt-create:
 	docker exec -it node-1 redis-cli -a redispw --cluster create \
 		node-1:6379 \
 		node-2:6379 \
@@ -43,10 +43,14 @@ cluster-create:
 		--cluster-replicas 1 --cluster-yes
 
 
-cluster-check:
+clt-check:
+	@echo "Checking the cluster status..."
 	docker exec -it node-1 redis-cli -a redispw cluster info
 	docker exec -it node-1 redis-cli -a redispw cluster nodes
-
-cluster-test:
+	@echo "Run demo..."
 	docker exec -it node-1 redis-cli -a redispw -c set foo bar
 	docker exec -it node-2 redis-cli -a redispw -c get foo
+
+clt-test:
+	chmod +x tests/clt.sh
+	bash ./tests/clt.sh

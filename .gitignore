@@ -1,2 +1,14 @@
 backups/
+node_modules/
+.DS_Store
+.env
+dist/
+*.log
+*.tmp
+*.swp
+*.swo
+*.bak
+*.old
+
 playground
+examples
