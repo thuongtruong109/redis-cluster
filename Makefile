@@ -29,25 +29,24 @@ health:
 	bash ./scripts/health.sh
 
 cluster:
-	docker-compose down -v
+	docker-compose -f docker-compose.cluster.yml down -v
 	docker-compose -f docker-compose.cluster.yml up -d --force-recreate
 
 cluster-create:
-# 	docker exec -it node-1 redis-cli --cluster create node-1:6379 node-2:6379 node-3:6379 node-4:6379 node-5:6379 node-6:6379 --cluster-replicas 1
 	docker exec -it node-1 redis-cli -a redispw --cluster create \
-		172.28.0.11:6379 \
-		172.28.0.12:6379 \
-		172.28.0.13:6379 \
-		172.28.0.14:6379 \
-		172.28.0.15:6379 \
-		172.28.0.16:6379 \
-		--cluster-replicas 1
+		node-1:6379 \
+		node-2:6379 \
+		node-3:6379 \
+		node-4:6379 \
+		node-5:6379 \
+		node-6:6379 \
+		--cluster-replicas 1 --cluster-yes
 
 
-cluster-verify:
+cluster-check:
 	docker exec -it node-1 redis-cli -a redispw cluster info
 	docker exec -it node-1 redis-cli -a redispw cluster nodes
 
 cluster-test:
-	docker exec -it node-1 redis-cli -a redispw set foo bar
-	docker exec -it node-2 redis-cli -a redispw get foo
+	docker exec -it node-1 redis-cli -a redispw -c set foo bar
+	docker exec -it node-2 redis-cli -a redispw -c get foo
