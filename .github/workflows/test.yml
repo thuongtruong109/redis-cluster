@@ -1,8 +1,8 @@
-name: Redis Replication CI/CD
+name: Replication CI/CD
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
     branches: [main]
 
@@ -25,7 +25,7 @@ jobs:
       - name: Check Redis configuration files
         run: |
           # Check if all required config files exist
-          for config in master/ha.conf slave_1/redis.conf slave_2/redis.conf slave_3/redis.conf sentinel_1/sentinel.conf sentinel_2/sentinel.conf sentinel_3/sentinel.conf commander/config.json; do
+          for config in ha/master.conf ha/slave.conf ha/sentinel.conf commander/config.json; do
             if [ ! -f "$config" ]; then
               echo "❌ Missing configuration file: $config"
               exit 1
@@ -35,6 +35,8 @@ jobs:
 
   security-scan:
     runs-on: ubuntu-latest
+    permissions:
+      security-events: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -61,82 +63,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.11"
-
-      - name: Install test dependencies
-        run: |
-          pip install redis pytest pytest-asyncio pytest-timeout docker
-
-      - name: Create test configuration files (if missing)
-        run: |
-          # Create basic configs for testing if they don't exist
-          mkdir -p master slave_1 slave_2 slave_3 sentinel_1 sentinel_2 sentinel_3 commander
-
-          # Master config
-          if [ ! -f "master/ha.conf" ]; then
-            cat > master/ha.conf << 'EOF'
-          bind 0.0.0.0
-          port 6379
-          requirepass masterpass
-          masterauth masterpass
-          save 900 1
-          save 300 10
-          save 60 10000
-          EOF
-          fi
-
-          # Slave configs
-          for i in 1 2 3; do
-            if [ ! -f "slave_$i/redis.conf" ]; then
-              cat > slave_$i/redis.conf << 'EOF'
-          bind 0.0.0.0
-          port 6379
-          replicaof 172.28.0.10 6379
-          masterauth masterpass
-          requirepass slavepass
-          replica-read-only yes
-          EOF
-            fi
-          done
-
-          # Sentinel configs
-          for i in 1 2 3; do
-            port=$((26378 + i))
-            if [ ! -f "sentinel_$i/sentinel.conf" ]; then
-              cat > sentinel_$i/sentinel.conf << 'EOF'
-          bind 0.0.0.0
-          port 26379
-          sentinel monitor mymaster 172.28.0.10 6379 2
-          sentinel auth-pass mymaster masterpass
-          sentinel down-after-milliseconds mymaster 5000
-          sentinel failover-timeout mymaster 10000
-          sentinel parallel-syncs mymaster 1
-          EOF
-            fi
-          done
-
-          # Commander config
-          if [ ! -f "commander/config.json" ]; then
-            cat > commander/config.json << 'EOF'
-          {
-            "redis": {
-              "defaultLabel": "Redis Master",
-              "connections": [
-                {
-                  "label": "Master",
-                  "host": "172.28.0.10",
-                  "port": 6379,
-                  "password": "masterpass"
-                }
-              ]
-            }
-          }
-          EOF
-          fi
-
       - name: Start Redis cluster
         run: |
           docker compose up -d
@@ -149,7 +75,7 @@ jobs:
 
           # Wait for slaves to be ready
           for i in 1 2 3; do
-            timeout 60 bash -c "until docker exec slave_$i redis-cli -a slavepass ping; do sleep 2; done"
+            timeout 60 bash -c "until docker exec slave_$i redis-cli -a masterpass ping; do sleep 2; done"
           done
 
           # Wait for sentinels to be ready
@@ -159,50 +85,18 @@ jobs:
 
       - name: Run integration tests
         run: |
-          python -m pytest tests/ -v --timeout=300
+          chmod +x tests/integration.sh
+          bash tests/integration.sh
 
-      - name: Run replication tests
+      - name: Run failover tests
         run: |
-          # Test write to master, read from slaves
-          docker exec redis-master redis-cli -a masterpass set test_key "test_value"
-          sleep 2
+          chmod +x tests/failover.sh
+          bash tests/failover.sh
 
-          for i in 1 2 3; do
-            echo "Testing slave_$i replication..."
-            result=$(docker exec slave_$i redis-cli -a slavepass get test_key)
-            if [ "$result" != "test_value" ]; then
-              echo "❌ Replication failed on slave_$i"
-              exit 1
-            fi
-          done
-          echo "✅ Replication test passed"
-
-      - name: Run sentinel tests
+      - name: Run health checks
         run: |
-          # Test sentinel master discovery
-          for i in 1 2 3; do
-            echo "Testing sentinel_$i..."
-            master_info=$(docker exec sentinel_$i redis-cli -p 26379 sentinel masters)
-            echo "Sentinel $i master info: $master_info"
-          done
-
-      - name: Run failover simulation
-        run: |
-          echo "🔄 Simulating master failover..."
-
-          # Stop master
-          docker stop redis-master
-          sleep 15
-
-          # Check if sentinels promoted a new master
-          for i in 1 2 3; do
-            echo "Checking sentinel_$i for new master..."
-            docker exec sentinel_$i redis-cli -p 26379 sentinel masters || true
-          done
-
-          # Restart original master
-          docker start redis-master
-          sleep 10
+          chmod +x scripts/health.sh
+          bash scripts/health.sh --basic
 
       - name: Collect logs on failure
         if: failure()
@@ -215,7 +109,7 @@ jobs:
 
           echo "=== Network Status ==="
           docker network ls
-          docker network inspect redis-replication_redisnet || true
+          docker network inspect redis-cluster_redisnet || true
 
       - name: Cleanup
         if: always()
@@ -239,34 +133,6 @@ jobs:
 
       - name: Start Redis cluster
         run: |
-          # Create minimal configs for performance testing
-          mkdir -p master slave_1 sentinel_1 commander
-
-          cat > master/ha.conf << 'EOF'
-          bind 0.0.0.0
-          port 6379
-          requirepass masterpass
-          EOF
-
-          cat > slave_1/redis.conf << 'EOF'
-          bind 0.0.0.0
-          port 6379
-          replicaof 172.28.0.10 6379
-          masterauth masterpass
-          requirepass slavepass
-          EOF
-
-          cat > sentinel_1/sentinel.conf << 'EOF'
-          bind 0.0.0.0
-          port 26379
-          sentinel monitor mymaster 172.28.0.10 6379 2
-          sentinel auth-pass mymaster masterpass
-          EOF
-
-          cat > commander/config.json << 'EOF'
-          {"redis": {"connections": []}}
-          EOF
-
           docker compose up -d redis-master slave_1
           sleep 20
 
@@ -280,58 +146,58 @@ jobs:
 
           # Benchmark reads on slave
           echo "=== Slave Read Performance ==="
-          redis-benchmark -h localhost -p 6380 -a slavepass -t get -n 10000 -c 10 -q
+          redis-benchmark -h localhost -p 6380 -a masterpass -t get -n 10000 -c 10 -q
 
       - name: Cleanup performance test
         if: always()
         run: |
           docker compose down -v
 
-  deploy-staging:
-    runs-on: ubuntu-latest
-    needs: [integration-tests, security-scan]
-    if: github.ref == 'refs/heads/develop'
+  # deploy-staging:
+  #   runs-on: ubuntu-latest
+  #   needs: [integration-tests, security-scan]
+  #   if: github.ref == 'refs/heads/develop'
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      - name: Deploy to staging
-        run: |
-          echo "🚀 Deploying to staging environment..."
-          # Add your staging deployment commands here
-          # For example: kubectl apply -f k8s-staging/ or docker stack deploy
+  #     - name: Deploy to staging
+  #       run: |
+  #         echo "🚀 Deploying to staging environment..."
+  #         # Add your staging deployment commands here
+  #         # For example: kubectl apply -f k8s-staging/ or docker stack deploy
 
-  deploy-production:
-    runs-on: ubuntu-latest
-    needs: [integration-tests, performance-tests, security-scan]
-    if: github.ref == 'refs/heads/main'
-    environment: production
+  # deploy-production:
+  #   runs-on: ubuntu-latest
+  #   needs: [integration-tests, performance-tests, security-scan]
+  #   if: github.ref == 'refs/heads/main'
+  #   environment: production
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      - name: Deploy to production
-        run: |
-          echo "🚀 Deploying to production environment..."
-          # Add your production deployment commands here
-          # For example: kubectl apply -f k8s-production/ or docker stack deploy
+  #     - name: Deploy to production
+  #       run: |
+  #         echo "🚀 Deploying to production environment..."
+  #         # Add your production deployment commands here
+  #         # For example: kubectl apply -f k8s-production/ or docker stack deploy
 
-  notify:
-    runs-on: ubuntu-latest
-    needs: [integration-tests, performance-tests, security-scan]
-    if: always()
+  # notify:
+  #   runs-on: ubuntu-latest
+  #   needs: [integration-tests, performance-tests, security-scan]
+  #   if: always()
 
-    steps:
-      - name: Notify on success
-        if: ${{ needs.integration-tests.result == 'success' }}
-        run: |
-          echo "✅ All tests passed! Redis cluster is healthy."
-          # Add notification logic (Slack, email, etc.)
+  #   steps:
+  #     - name: Notify on success
+  #       if: ${{ needs.integration-tests.result == 'success' }}
+  #       run: |
+  #         echo "✅ All tests passed! Redis cluster is healthy."
+  #         # Add notification logic (Slack, email, etc.)
 
-      - name: Notify on failure
-        if: ${{ needs.integration-tests.result == 'failure' }}
-        run: |
-          echo "❌ Tests failed! Check the logs for details."
-          # Add failure notification logic
+  #     - name: Notify on failure
+  #       if: ${{ needs.integration-tests.result == 'failure' }}
+  #       run: |
+  #         echo "❌ Tests failed! Check the logs for details."
+  #         # Add failure notification logic

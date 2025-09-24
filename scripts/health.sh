@@ -63,15 +63,51 @@ check_redis_connection() {
     fi
 }
 
+get_current_master() {
+    # Query the first available Sentinel for the current master
+    for i in "${!SENTINEL_HOSTS[@]}"; do
+        local sentinel_host="${SENTINEL_HOSTS[$i]}"
+        local sentinel_port="${SENTINEL_PORTS[$i]}"
+        local sentinel_num=$((i + 1))
+
+        if docker exec "sentinel_$sentinel_num" redis-cli -h "$sentinel_host" -p "$sentinel_port" ping &>/dev/null; then
+            local master_addr
+            master_addr=$(docker exec "sentinel_$sentinel_num" redis-cli -p "$sentinel_port" sentinel get-master-addr-by-name "$MASTER_NAME" 2>/dev/null)
+            if [ -n "$master_addr" ]; then
+                # master_addr is "host\nport"
+                local current_master_host=$(echo "$master_addr" | head -n1)
+                local current_master_port=$(echo "$master_addr" | tail -n1)
+                echo "$current_master_host:$current_master_port"
+                return 0
+            fi
+        fi
+    done
+    echo ""
+    return 1
+}
+
 check_replication() {
     log "Checking replication status..."
 
-    # Set a test key on master
+    # Get the current master from Sentinel
+    local current_master
+    current_master=$(get_current_master)
+    if [ -z "$current_master" ]; then
+        print_status "ERROR" "Unable to determine current master from Sentinel"
+        return 1
+    fi
+
+    local current_master_host="${current_master%:*}"
+    local current_master_port="${current_master#*:}"
+
+    print_status "OK" "Current master identified: $current_master_host:$current_master_port"
+
+    # Set a test key on the current master
     local test_key="health_check_$(date +%s)"
     local test_value="health_check_value_$(date +%s)"
 
-    if ! docker exec redis-master redis-cli -a "$MASTER_PASS" set "$test_key" "$test_value" &>/dev/null; then
-        print_status "ERROR" "Failed to write test key to master"
+    if ! docker exec redis-master redis-cli -h "$current_master_host" -p "$current_master_port" -a "$MASTER_PASS" set "$test_key" "$test_value" &>/dev/null; then
+        print_status "ERROR" "Failed to write test key to current master"
         return 1
     fi
 
@@ -97,7 +133,7 @@ check_replication() {
     done
 
     # Cleanup
-    docker exec redis-master redis-cli -a "$MASTER_PASS" del "$test_key" &>/dev/null
+    docker exec redis-master redis-cli -h "$current_master_host" -p "$current_master_port" -a "$MASTER_PASS" del "$test_key" &>/dev/null
 
     if [ $failed_slaves -eq 0 ]; then
         print_status "OK" "All slaves are properly replicating"
@@ -231,11 +267,22 @@ collect_metrics() {
 perform_load_test() {
     log "Performing basic load test..."
 
+    # Get the current master
+    local current_master
+    current_master=$(get_current_master)
+    if [ -z "$current_master" ]; then
+        print_status "ERROR" "Unable to determine current master for load test"
+        return 1
+    fi
+
+    local current_master_host="${current_master%:*}"
+    local current_master_port="${current_master#*:}"
+
     # Simple load test - write 1000 keys
     local start_time=$(date +%s)
 
     for i in {1..1000}; do
-        docker exec redis-master redis-cli -a "$MASTER_PASS" set "load_test_key_$i" "load_test_value_$i" &>/dev/null
+        docker exec redis-master redis-cli -h "$current_master_host" -p "$current_master_port" -a "$MASTER_PASS" set "load_test_key_$i" "load_test_value_$i" &>/dev/null
     done
 
     local end_time=$(date +%s)
@@ -245,7 +292,7 @@ perform_load_test() {
     print_status "OK" "Load test completed: $ops_per_second ops/sec"
 
     # Cleanup
-    docker exec redis-master redis-cli -a "$MASTER_PASS" eval "for _,k in ipairs(redis.call('keys', 'load_test_key_*')) do redis.call('del', k) end" 0 &>/dev/null
+    docker exec redis-master redis-cli -h "$current_master_host" -p "$current_master_port" -a "$MASTER_PASS" eval "for _,k in ipairs(redis.call('keys', 'load_test_key_*')) do redis.call('del', k) end" 0 &>/dev/null
 
     if [ $ops_per_second -gt 100 ]; then
         print_status "OK" "Performance is acceptable"
@@ -407,5 +454,4 @@ main() {
     exit $overall_status
 }
 
-# Run main function with all arguments
 main "$@"

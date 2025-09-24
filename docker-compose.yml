@@ -20,8 +20,7 @@ services:
       timeout: 3s
       retries: 5
     volumes:
-      - ./master/ha.conf:/etc/redis/redis.conf
-      - master-data:/data
+      - ./ha/master.conf:/etc/redis/redis.conf
     ports:
       - "6379:6379"
     networks:
@@ -33,8 +32,7 @@ services:
     container_name: slave_1
     command: ["redis-server", "/etc/redis/redis.conf"]
     volumes:
-      - ./slave_1/redis.conf:/etc/redis/redis.conf
-      - slave_1-data:/data
+      - ./ha/slave.conf:/etc/redis/redis.conf
     depends_on:
       - redis-master
     ports:
@@ -48,8 +46,7 @@ services:
     container_name: slave_2
     command: ["redis-server", "/etc/redis/redis.conf"]
     volumes:
-      - ./slave_2/redis.conf:/etc/redis/redis.conf
-      - slave_2-data:/data
+      - ./ha/slave.conf:/etc/redis/redis.conf
     depends_on:
       - redis-master
     ports:
@@ -63,8 +60,7 @@ services:
     container_name: slave_3
     command: ["redis-server", "/etc/redis/redis.conf"]
     volumes:
-      - ./slave_3/redis.conf:/etc/redis/redis.conf
-      - slave_3-data:/data
+      - ./ha/slave.conf:/etc/redis/redis.conf
     depends_on:
       - redis-master
     ports:
@@ -78,7 +74,7 @@ services:
     container_name: sentinel_1
     command: ["redis-sentinel", "/etc/redis/sentinel.conf"]
     volumes:
-      - ./sentinel_1/sentinel.conf:/etc/redis/sentinel.conf
+      - ./ha/sentinel.conf:/etc/redis/sentinel.conf
     ports:
       - "26379:26379"
     networks:
@@ -86,15 +82,14 @@ services:
         ipv4_address: 172.28.0.20
     restart: always
     depends_on:
-      redis-master:
-        condition: service_healthy
+      - redis-master
 
   sentinel_2:
     image: redis:7.2
     container_name: sentinel_2
     command: ["redis-sentinel", "/etc/redis/sentinel.conf"]
     volumes:
-      - ./sentinel_2/sentinel.conf:/etc/redis/sentinel.conf
+      - ./ha/sentinel.conf:/etc/redis/sentinel.conf
     ports:
       - "26380:26379"
     networks:
@@ -102,15 +97,14 @@ services:
         ipv4_address: 172.28.0.21
     restart: always
     depends_on:
-      redis-master:
-        condition: service_healthy
+      - redis-master
 
   sentinel_3:
     image: redis:7.2
     container_name: sentinel_3
     command: ["redis-sentinel", "/etc/redis/sentinel.conf"]
     volumes:
-      - ./sentinel_3/sentinel.conf:/etc/redis/sentinel.conf
+      - ./ha/sentinel.conf:/etc/redis/sentinel.conf
     ports:
       - "26381:26379"
     networks:
@@ -118,8 +112,7 @@ services:
         ipv4_address: 172.28.0.22
     restart: always
     depends_on:
-      redis-master:
-        condition: service_healthy
+      - redis-master
 
 networks:
   redisnet:
@@ -127,9 +120,3 @@ networks:
     ipam:
       config:
         - subnet: 172.28.0.0/16
-
-volumes:
-  master-data:
-  slave_1-data:
-  slave_2-data:
-  slave_3-data:

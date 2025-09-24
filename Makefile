@@ -1,14 +1,14 @@
 .PHONY: format start master slave failover integration
 
 format:
-	sed -i 's/\r$//' sentinel_1/sentinel.conf sentinel_2/sentinel.conf sentinel_3/sentinel.conf
+	sed -i 's/\r$//' ha/sentinel.conf
 
 start:
 	docker-compose down -v
 	docker-compose up -d --force-recreate
 
 ci:
-	docker-compose -f docker-compose.ci.yml down -v || true
+	docker-compose down -v || true
 	docker-compose -f docker-compose.ci.yml up -d
 
 master:
@@ -27,9 +27,9 @@ backup:
 	bash ./scripts/backup.sh
 
 health:
-	chmod +x tests/health.sh
+	chmod +x scripts/health.sh
 
-	bash ./tests/health.sh
+	bash ./scripts/health.sh
 
 # 	./tests/health.sh --basic
 # 	./tests/health.sh --full --report

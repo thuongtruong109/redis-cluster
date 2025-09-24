@@ -4,9 +4,6 @@
 - Automatically add/remove nodes (scale out/in), script to automatically re-balance slots.
 
 - Write a script to check data consistency between nodes.
-- Use GitHub Actions/GitLab CI to build, test, and deploy.
-- Write tests to check failover, replication, and cluster slots.
-- Script to check data consistency after failover.
 - Automatically rollback when errors are detected.
 - Benchmark performance with redis-benchmark.
 
@@ -29,7 +26,6 @@
 - Demo automatic failover without service interruption.
 - Build middleware cache with Redis.
 
-- Set strong passwords, only open necessary ports.
 - Enable TLS for Redis.
 - Optimize maxmemory configuration and eviction policy.
 - Restrict IP access, firewall.

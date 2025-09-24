@@ -7,11 +7,10 @@ wait_for_ready() {
   CONTAINER=$1
   PORT=$2
   log "⏳ Waiting for $CONTAINER to be ready on port $PORT..."
-  for i in $(seq 1 30); do
+  for i in $(seq 1 60); do      # tăng số vòng chờ
     if docker ps --filter "name=$CONTAINER" --filter "status=running" --format '{{.Names}}' | grep -q "$CONTAINER"; then
-      # Thử ping
-      if docker exec "$CONTAINER" redis-cli -a masterpass -p "$PORT" ping 2>/dev/null | grep -q PONG; then
-        # Nếu là slave thì check replication info nữa
+      PONG=$(docker exec "$CONTAINER" redis-cli -a masterpass -p "$PORT" ping 2>/dev/null || true)
+      if [ "$PONG" = "PONG" ]; then
         ROLE=$(docker exec "$CONTAINER" redis-cli -a masterpass -p "$PORT" info replication | grep "^role:" | cut -d: -f2 || true)
         if [ "$ROLE" = "slave" ]; then
           MASTER_HOST=$(docker exec "$CONTAINER" redis-cli -a masterpass -p "$PORT" info replication | grep "^master_host:" | cut -d: -f2 || true)
