@@ -4,7 +4,7 @@ format:
 	@dos2unix Makefile
 	@sed -i 's/\r$$//' Makefile ha/sentinel.conf ha/slave.conf ha/master.conf
 
-start:
+replica:
 	docker-compose down -v
 	docker-compose up -d --force-recreate
 
@@ -24,27 +24,30 @@ backup:
 	bash ./scripts/backup.sh
 
 health:
+	@echo "Flags: --basic, --full --report, --load-test, --metrics-only, --help"
 	chmod +x scripts/health.sh
 	bash ./scripts/health.sh
 
-# 	./tests/health.sh --basic
-# 	./tests/health.sh --full --report
-# 	./tests/health.sh --load-test
-# 	./tests/health.sh --metrics-only
-# 	./tests/health.sh --help
+cluster:
+	docker-compose down -v
+	docker-compose -f docker-compose.cluster.yml up -d --force-recreate
 
-# cluster:
-# 	docker-compose -f docker-compose.cluster.yml up -d --force-recreate
+cluster-create:
+# 	docker exec -it node-1 redis-cli --cluster create node-1:6379 node-2:6379 node-3:6379 node-4:6379 node-5:6379 node-6:6379 --cluster-replicas 1
+	docker exec -it node-1 redis-cli -a redispw --cluster create \
+		172.28.0.11:6379 \
+		172.28.0.12:6379 \
+		172.28.0.13:6379 \
+		172.28.0.14:6379 \
+		172.28.0.15:6379 \
+		172.28.0.16:6379 \
+		--cluster-replicas 1
 
-# cluster-create:
-# 	docker exec -it redis-node1 redis-cli --cluster create \
-# 	  redis-node1:6379 redis-node2:6379 redis-node3:6379 \
-# 	  redis-node4:6379 redis-node5:6379 redis-node6:6379 \
-# 	  --cluster-replicas 1
 
-# cluster-nodes:
-# 	docker exec -it redis-node1 redis-cli cluster nodes
+cluster-verify:
+	docker exec -it node-1 redis-cli -a redispw cluster info
+	docker exec -it node-1 redis-cli -a redispw cluster nodes
 
-# cluster-test:
-# 	docker exec -it redis-node1 redis-cli set user:1 "Alice"
-# 	docker exec -it redis-node2 redis-cli get user:1
+cluster-test:
+	docker exec -it node-1 redis-cli -a redispw set foo bar
+	docker exec -it node-2 redis-cli -a redispw get foo
