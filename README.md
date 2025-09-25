@@ -8,10 +8,11 @@
     <img src="https://img.shields.io/badge/License-MIT-brightgreen.svg" alt="License" height="28"/>
   </p>
 
-  <h1>🚀 Redis Cluster Replication Simulator</h1>
+  <img src="./.github/assets/banner.webp" alt="Redis Cluster Banner" />
+
   <p><b>A complete, ready-to-run Redis Sentinel & Cluster environment with Docker Compose for learning, testing, and deploying Redis in real-world scenarios.</b></p>
 
-  <img src="https://skillicons.dev/icons?i=redis,docker,bash,linux,github,gitlab" height="45"/>
+  <img src="https://skillicons.dev/icons?i=redis,docker,bash,linux,github" height="45"/>
 </div>
 
 ## 📝 Overview
@@ -74,11 +75,11 @@ redis-cluster/
 
 ```mermaid
 flowchart TD
-    S1[Sentinel 1] --> M[Master (6379)]
-    S2[Sentinel 2] --> M
-    S3[Sentinel 3] --> M
-    M --> R1[Replica 1 (6380)]
-    M --> R2[Replica 2 (6381)]
+S1[Sentinel 1] --> M[Master (6379)]
+S2[Sentinel 2] --> M
+S3[Sentinel 3] --> M
+M --> R1[Replica 1 (6380)]
+M --> R2[Replica 2 (6381)]
 ```
 
 ### 🔹 Cluster Mode (Sharding)

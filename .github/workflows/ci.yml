@@ -6,10 +6,6 @@ on:
   pull_request:
     branches: [main]
 
-env:
-  DOCKER_BUILDKIT: 1
-  COMPOSE_DOCKER_CLI_BUILD: 1
-
 jobs:
   lint-and-validate:
     runs-on: ubuntu-latest
@@ -19,7 +15,7 @@ jobs:
 
       - name: Validate Docker Compose file
         run: |
-          docker-compose -f docker-compose.ha.yml config --quiet
+          docker compose -f docker-compose.ha.yml config --quiet
           echo "✅ Docker Compose file is valid"
 
       - name: Check Redis configuration files
@@ -64,7 +60,7 @@ jobs:
 
       - name: Start Redis cluster
         run: |
-          docker-compose -f docker-compose.ha.yml up -d
+          docker compose -f docker-compose.ha.yml up -d
           sleep 30
 
       - name: Wait for services to be ready
@@ -98,10 +94,10 @@ jobs:
         if: failure()
         run: |
           echo "=== Docker Compose Logs ==="
-          docker-compose -f docker-compose.ha.yml logs
+          docker compose -f docker-compose.ha.yml logs
 
           echo "=== Container Status ==="
-          docker-compose -f docker-compose.ha.yml ps
+          docker compose -f docker-compose.ha.yml ps
 
           echo "=== Network Status ==="
           docker network ls
@@ -110,7 +106,7 @@ jobs:
       - name: Cleanup
         if: always()
         run: |
-          docker-compose -f docker-compose.ha.yml down -v
+          docker compose -f docker-compose.ha.yml down -v
           docker system prune -f
 
   performance-tests:
@@ -129,7 +125,7 @@ jobs:
 
       - name: Start Redis cluster
         run: |
-          docker-compose -f docker-compose.ha.yml up -d redis-master slave_1
+          docker compose -f docker-compose.ha.yml up -d redis-master slave_1
           sleep 20
 
       - name: Run performance benchmarks
@@ -143,7 +139,7 @@ jobs:
       - name: Cleanup performance test
         if: always()
         run: |
-          docker-compose -f docker-compose.ha.yml down -v
+          docker compose -f docker-compose.ha.yml down -v
 
   notify:
     runs-on: ubuntu-latest
