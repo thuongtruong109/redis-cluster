@@ -197,6 +197,10 @@ sed -i 's/\r$//' ha/sentinel.conf ha/master.conf ha/slave.conf
 
 Or use Notepad++: Edit → EOL Conversion → Unix (LF) → Save.
 
+### With Tab/Spaces Issues:
+
+> Tip: In VS Code, you can use Ctrl+Shift+P → "Convert Indentation to Tabs" to fix all lines.
+
 ## 🏷️ Useful Commands
 
 ```bash

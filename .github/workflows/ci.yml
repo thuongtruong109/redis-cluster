@@ -13,20 +13,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Validate Docker Compose file
-        run: |
-          docker compose -f docker-compose.ha.yml config --quiet
-          echo "✅ Docker Compose file is valid"
-
-      - name: Check Redis configuration files
-        run: |
-          for config in ha/master.conf ha/slave.conf ha/sentinel.conf; do
-            if [ ! -f "$config" ]; then
-              echo "❌ Missing configuration file: $config"
-              exit 1
-            fi
-          done
-          echo "✅ All configuration files present"
+      - name: Validate Compose and check config files
+        run: make validate
 
   security-scan:
     runs-on: ubuntu-latest
@@ -58,37 +46,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Start Redis cluster
+      - name: Start Redis Replica
         run: |
-          docker compose -f docker-compose.ha.yml up -d
+          make ha
           sleep 30
 
       - name: Wait for services to be ready
-        run: |
-          timeout 60 bash -c 'until docker exec redis-master redis-cli -a masterpass ping; do sleep 2; done'
-
-          for i in 1 2 3; do
-            timeout 60 bash -c "until docker exec slave_$i redis-cli -a masterpass ping; do sleep 2; done"
-          done
-
-          for i in 1 2 3; do
-            timeout 60 bash -c "until docker exec sentinel_$i redis-cli -p 26379 ping; do sleep 2; done"
-          done
+        run: make ha-check
 
       - name: Run Replica integration tests
-        run: |
-          chmod +x tests/ha.sh
-          bash tests/ha.sh
+        run: make ha-test
 
       - name: Run Replica failover tests
-        run: |
-          chmod +x tests/ha-failover.sh
-          bash tests/ha-failover.sh
+        run: make ha-test-failover
 
       - name: Run Replica health checks
-        run: |
-          chmod +x scripts/ha-health.sh
-          bash scripts/ha-health.sh --basic
+        run: make ha-health
 
       - name: Collect logs on failure
         if: failure()
@@ -100,9 +73,7 @@ jobs:
 
       - name: Cleanup
         if: always()
-        run: |
-          docker compose -f docker-compose.ha.yml down -v
-          docker system prune -f
+        run: make clean
 
   performance-tests:
     runs-on: ubuntu-latest
@@ -118,20 +89,19 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y redis-tools
 
-      - name: Start Redis cluster
+      - name: Start Redis Replica
         run: |
-          docker compose -f docker-compose.ha.yml up -d redis-master slave_1
+          make ha
           sleep 20
 
       - name: Run performance benchmarks
         run: |
-          redis-benchmark -h localhost -p 6379 -a masterpass -t set -n 10000 -c 10 -q
-          redis-benchmark -h localhost -p 6380 -a masterpass -t get -n 10000 -c 10 -q
+          redis-benchmark -h localhost -p 6379 -a masterpass -t set -n 10000 -c 50 -q
+          redis-benchmark -h localhost -p 6380 -a masterpass -t get -n 10000 -c 50 -q
 
       - name: Cleanup performance test
         if: always()
-        run: |
-          docker compose -f docker-compose.ha.yml down -v
+        run: make clean
 
   notify:
     runs-on: ubuntu-latest
