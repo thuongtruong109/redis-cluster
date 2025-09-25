@@ -1,16 +1,16 @@
 <div align="center">
   <p>
     <img src="https://img.shields.io/github/actions/workflow/status/thuongtruong109/redis-cluster/ci.yml?label=CI&logo=github" alt="CI Status" height="28"/>
-    <img src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white" alt="Docker Compose" height="28"/>
-    <img src="https://img.shields.io/badge/Cluster-Sharding-red?logo=redis&logoColor=white" alt="Redis" height="28"/>
-    <img src="https://img.shields.io/badge/Sentinel-HA-blue?logo=redis&logoColor=white" alt="Sentinel" height="28"/>
-    <img src="https://img.shields.io/badge/RedisCommander-UI-green?logo=redis&logoColor=white" alt="RedisCommander" height="28"/>
-    <img src="https://img.shields.io/badge/License-MIT-brightgreen.svg" alt="License" height="28"/>
+    <img src="https://img.shields.io/badge/Docker-Compose-brightgreen?logo=docker&logoColor=white" alt="Docker Compose" height="28"/>
+    <img src="https://img.shields.io/badge/Cluster-Sharding-brightgreen?logo=redis&logoColor=white" alt="Redis" height="28"/>
+    <img src="https://img.shields.io/badge/Sentinel-HA-brightgreen?logo=redis&logoColor=white" alt="Sentinel" height="28"/>
+    <img src="https://img.shields.io/badge/RedisCommander-UI-brightgreen?logo=redis&logoColor=white" alt="RedisCommander" height="28"/>
+   <img src="https://img.shields.io/badge/License-Apache%202.0-brightgreen.svg" alt="License" height="28"/>
   </p>
 
-  <img src="./.github/assets/banner.webp" alt="Redis Cluster Banner" />
+   <img src="./.github/assets/banner.webp" alt="Redis Cluster Banner" />
 
-  <p><b>A complete, ready-to-run Redis Sentinel & Cluster environment with Docker Compose for learning, testing, and deploying Redis in real-world scenarios.</b></p>
+   <p><b>A complete, ready-to-run Redis Sentinel & Cluster environment with Docker Compose for learning, testing, and deploying Redis in real-world scenarios.</b></p>
 
   <img src="https://skillicons.dev/icons?i=redis,docker,bash,linux,github" height="45"/>
 </div>
@@ -44,29 +44,30 @@ This project provides a **comprehensive Redis playground** for:
 
 ```
 redis-cluster/
-├── docker-compose.yml            # Sentinel setup (master, slaves, sentinels, commander)
+├── docker-compose.ha.yml         # Sentinel/HA setup (master, slaves, sentinels, commander)
 ├── docker-compose.cluster.yml    # Redis Cluster (6 nodes + RedisInsight)
 ├── Makefile                      # Automation commands
 ├── README.md                     # This file
-├── LICENSE                       # MIT License
+├── LICENSE                       # Apache 2.0 License
 ├── todo.md                       # Future enhancements roadmap
 ├── backups/                      # Backup storage directory
 │   ├── dump.rdb                  # Current backup
 │   └── dump_YYYY-MM-DD_HH-MM-SS.rdb  # Timestamped backups
 ├── commander/
-│   └── config.json               # Redis Commander configuration
+│   └── ha.json                   # Redis Commander configuration
 ├── ha/
 │   ├── master.conf               # Master Redis configuration
 │   ├── sentinel.conf             # Sentinel configuration
 │   └── slave.conf                # Slave Redis configuration
-├── master/
-│   └── cluster.conf              # Cluster node configuration
+├── cluster/
+│   └── node.conf                 # Cluster node configuration
 ├── scripts/
-│   ├── backup.sh                 # Backup and restore script
-│   └── health.sh                 # Health check script
+│   ├── ha-backup.sh              # Backup and restore script
+│   └── ha-health.sh              # Health check script
 └── tests/
-    ├── failover.sh               # Failover test script
-    └── integration.sh            # Integration test script
+   ├── ha-failover.sh            # Failover test script
+   ├── ha.sh                     # Integration test script
+   └── clt.sh                    # Cluster test script
 ```
 
 ## 🏗️ Architecture
@@ -75,39 +76,20 @@ redis-cluster/
 
 ```mermaid
 flowchart TD
-S1[Sentinel 1] --> M[Master (6379)]
-S2[Sentinel 2] --> M
-S3[Sentinel 3] --> M
-M --> R1[Replica 1 (6380)]
-M --> R2[Replica 2 (6381)]
+   S1[Sentinel 1] --> M[Master (6379)]
+   S2[Sentinel 2] --> M
+   S3[Sentinel 3] --> M
+   M --> R1[Replica 1 (6380)]
+   M --> R2[Replica 2 (6381)]
 ```
 
 ### 🔹 Cluster Mode (Sharding)
 
 ```mermaid
 graph LR
-    N1[Node 1: Master] --> N2[Node 2: Replica]
-    N3[Node 3: Master] --> N4[Node 4: Replica]
-    N5[Node 5: Master] --> N6[Node 6: Replica]
-```
-
-```
-                ┌──────────────┐
-                │  Sentinel 1  │
-                └──────┬───────┘
-                       │
- ┌───────────────┐ ┌────▼─────┐ ┌───────────────┐
- │  Sentinel 2   │ │  Master  │ │  Sentinel 3   │
- └───────────────┘ │redis-6379│ └───────────────┘
-                   │ password │
-                   └────┬─────┘
-                        │
-         ┌──────────────┴──────────────┐
-         │                             │
-    ┌────▼──────┐                ┌─────▼─────┐
-    │  Slave 1  │                │  Slave 2  │
-    │redis-6380 │                │redis-6381 │
-    └───────────┘                └───────────┘
+   N1[Node 1: Master] --> N2[Node 2: Replica]
+   N3[Node 3: Master] --> N4[Node 4: Replica]
+   N5[Node 5: Master] --> N6[Node 6: Replica]
 ```
 
 ## ⚡ Quick Start
@@ -116,7 +98,7 @@ graph LR
 
 ```bash
 # Start Sentinel/replica/master/commander
-docker-compose up -d
+docker-compose -f docker-compose.ha.yml up -d
 ```
 
 ### 2️⃣ Cluster Mode (sharding, failover)
@@ -126,14 +108,13 @@ docker-compose up -d
 docker-compose -f docker-compose.cluster.yml up -d
 
 # Create cluster (run once):
-chmod +x cluster.sh
-./cluster.sh
+# (see Makefile or scripts for cluster creation)
 ```
 
 ## 🛡️ Sentinel Mode
 
 - **Master:** `redis-master` (port 6379, password: `masterpass`)
-- **Replicas:** `slave_1` (6380), `slave_2` (6381)
+- **Replicas:** `slave_1` (6380), `slave_2` (6381), `slave_3` (6382)
 - **Sentinels:** `sentinel_1` (26379), `sentinel_2` (26380), `sentinel_3` (26381)
 - **Redis Commander:** [http://localhost:8081](http://localhost:8081)
 
@@ -147,14 +128,13 @@ docker exec -it sentinel_1 redis-cli -p 26379 SENTINEL get-master-addr-by-name m
 
 ## 🗃️ Cluster Mode
 
-- **Nodes:** `redis-node1` ... `redis-node6` (ports 7001-7006)
+- **Nodes:** `node-1` ... `node-6` (ports 7001-7006)
 - **RedisInsight:** [http://localhost:8001](http://localhost:8001)
 
 ### 🛠️ Create Cluster
 
 ```bash
-chmod +x cluster.sh
-./cluster.sh
+# See Makefile or scripts for cluster creation
 ```
 
 ## 🔄 Failover Test (Sentinel)
@@ -163,8 +143,8 @@ You can use the provided script to simulate failover:
 
 ```bash
 # On Linux/WSL/Git Bash:
-chmod +x test-failover.sh
-./test-failover.sh
+chmod +x tests/ha-failover.sh
+./tests/ha-failover.sh
 
 # On PowerShell:
 # (Manual steps below)
@@ -203,16 +183,16 @@ Ensure configs use LF endings.
 ### On Git Bash / WSL / Linux:
 
 ```bash
-dos2unix ha/sentinel.conf ha/sentinel.conf ha/sentinel.conf
-sed -i 's/\r$//' ha/sentinel.conf ha/sentinel.conf ha/sentinel.conf
+dos2unix ha/sentinel.conf ha/master.conf ha/slave.conf
+sed -i 's/\r$//' ha/sentinel.conf ha/master.conf ha/slave.conf
 ```
 
 ### On PowerShell:
 
 ```powershell
 (Get-Content ha/sentinel.conf -Raw) -replace "`r`n","`n" | Set-Content ha/sentinel.conf -NoNewline
-(Get-Content ha/sentinel.conf -Raw) -replace "`r`n","`n" | Set-Content ha/sentinel.conf -NoNewline
-(Get-Content ha/sentinel.conf -Raw) -replace "`r`n","`n" | Set-Content ha/sentinel.conf -NoNewline
+(Get-Content ha/master.conf -Raw) -replace "`r`n","`n" | Set-Content ha/master.conf -NoNewline
+(Get-Content ha/slave.conf -Raw) -replace "`r`n","`n" | Set-Content ha/slave.conf -NoNewline
 ```
 
 Or use Notepad++: Edit → EOL Conversion → Unix (LF) → Save.
@@ -227,7 +207,7 @@ docker network inspect redisnet
 docker ps -a --format "table {{.Names}}\t{{.Status}}"
 
 # View logs
-docker-compose logs -f sentinel_1
+docker-compose -f docker-compose.ha.yml logs -f sentinel_1
 
 # Access Redis Commander
 start http://localhost:8081
@@ -242,26 +222,26 @@ start http://localhost:8001
 - **Security:** Change default passwords before using in production.
 - **Extend:** Add your own application containers to test integration with Redis.
 
-## � Scripts and Automation
+## 🛠️ Scripts and Automation
 
 This project includes several automation scripts to help with management and testing:
 
-### Health Checks (`scripts/health.sh`)
+### Health Checks (`scripts/ha-health.sh`)
 
 Comprehensive health monitoring for the Redis cluster:
 
 ```bash
 # Basic health check
-./scripts/health.sh --basic
+./scripts/ha-health.sh --basic
 
 # Full health check with metrics
-./scripts/health.sh --full
+./scripts/ha-health.sh --full
 
 # Load testing
-./scripts/health.sh --load-test
+./scripts/ha-health.sh --load-test
 
 # Generate health report
-./scripts/health.sh --report
+./scripts/ha-health.sh --report
 ```
 
 Features:
@@ -274,13 +254,13 @@ Features:
 - Performance benchmarking
 - Automated reporting
 
-### Backup & Restore (`scripts/backup.sh`)
+### Backup & Restore (`scripts/ha-backup.sh`)
 
 Automated backup and restore functionality:
 
 ```bash
 # Run backup (creates timestamped RDB file in backups/)
-./scripts/backup.sh
+./scripts/ha-backup.sh
 
 # Restore from latest backup
 # (Script handles loading RDB into new container for verification)
@@ -295,24 +275,24 @@ Features:
 
 ## 🧪 Testing
 
-### Failover Tests (`tests/failover.sh`)
+### Failover Tests (`tests/ha-failover.sh`)
 
 Test Sentinel failover functionality:
 
 ```bash
 # Run automated failover test
-./tests/failover.sh
+./tests/ha-failover.sh
 ```
 
 Simulates master failure and verifies automatic failover to replica.
 
-### Integration Tests (`tests/integration.sh`)
+### Integration Tests (`tests/ha.sh`)
 
 Comprehensive integration testing:
 
 ```bash
 # Run full integration test suite
-./tests/integration.sh
+./tests/ha.sh
 ```
 
 Tests:
@@ -323,6 +303,15 @@ Tests:
 - Data consistency
 - Recovery procedures
 
+### Cluster Tests (`tests/clt.sh`)
+
+Test Redis Cluster functionality:
+
+```bash
+# Run cluster test suite
+./tests/clt.sh
+```
+
 ## 📋 Makefile
 
 Use the provided Makefile for common operations:
@@ -331,26 +320,38 @@ Use the provided Makefile for common operations:
 # Format configuration files (fix line endings)
 make format
 
-# Start the cluster
-make start
+# Start Sentinel/HA cluster
+make ha
 
 # Get current master
-make master
+make ha-master
 
 # Get slave info
-make slave
+make ha-slave
 
 # Run failover test
-make failover
+make ha-test-failover
 
 # Run integration tests
-make integration
+make ha-test
 
 # Run backup
-make backup
+make ha-backup
 
 # Run health checks
-make health
+make ha-health
+
+# Start Redis Cluster
+make clt
+
+# Create cluster
+make clt-create
+
+# Check cluster status
+make clt-check
+
+# Run cluster tests
+make clt-test
 ```
 
 ## 🤝 Contributing
@@ -365,7 +366,7 @@ Bug reports & feature requests welcome in [Issues](https://github.com/thuongtruo
 1. Fork the repository
 2. Clone your fork: `git clone https://github.com/thuongtruong109/redis-cluster.git`
 3. Make changes
-4. Run tests: `make integration`
+4. Run tests: `make ha-test`
 5. Submit a pull request
 
 ### Issue Templates
@@ -373,9 +374,9 @@ Bug reports & feature requests welcome in [Issues](https://github.com/thuongtruo
 - [Bug Report](.github/ISSUE_TEMPLATE/bug-report.yml)
 - [Feature Request](.github/ISSUE_TEMPLATE/feature-request.yml)
 
-## � License
+## 📝 License
 
-[MIT](LICENSE)
+[Apache 2.0](LICENSE)
 
 <!-- https://medium.com/@jielim36/basic-docker-compose-and-build-a-redis-cluster-with-docker-compose-0313f063afb6 -->
 <!-- https://dev.to/hedgehog/set-up-redis-diskless-replication-359 -->

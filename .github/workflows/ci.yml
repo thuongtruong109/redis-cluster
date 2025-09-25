@@ -20,7 +20,7 @@ jobs:
 
       - name: Check Redis configuration files
         run: |
-          for config in ha/master.conf ha/slave.conf ha/sentinel.conf commander/config.json; do
+          for config in ha/master.conf ha/slave.conf ha/sentinel.conf; do
             if [ ! -f "$config" ]; then
               echo "❌ Missing configuration file: $config"
               exit 1
@@ -93,13 +93,8 @@ jobs:
       - name: Collect logs on failure
         if: failure()
         run: |
-          echo "=== Docker Compose Logs ==="
           docker compose -f docker-compose.ha.yml logs
-
-          echo "=== Container Status ==="
           docker compose -f docker-compose.ha.yml ps
-
-          echo "=== Network Status ==="
           docker network ls
           docker network inspect redis-cluster_redisnet || true
 
@@ -130,10 +125,7 @@ jobs:
 
       - name: Run performance benchmarks
         run: |
-          echo "=== Master Write Performance ==="
           redis-benchmark -h localhost -p 6379 -a masterpass -t set -n 10000 -c 10 -q
-
-          echo "=== Slave Read Performance ==="
           redis-benchmark -h localhost -p 6380 -a masterpass -t get -n 10000 -c 10 -q
 
       - name: Cleanup performance test

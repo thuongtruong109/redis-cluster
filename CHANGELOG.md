@@ -1,6 +1,6 @@
 # Changelog
 
-## [v0.1.0] - 2025-09-25
+## [v0.1.0 - 2025-09-25](https://github.com/thuongtruong109/redis-cluster/releases/tag/v0.1.0)
 
 ### CI
 
