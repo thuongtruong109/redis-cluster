@@ -96,7 +96,7 @@ jobs:
           docker compose -f docker-compose.ha.yml logs
           docker compose -f docker-compose.ha.yml ps
           docker network ls
-          docker network inspect redis-cluster_redisnet || true
+          docker network inspect reluster_redisnet || true
 
       - name: Cleanup
         if: always()

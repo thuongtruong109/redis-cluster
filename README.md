@@ -43,7 +43,7 @@ This project provides a **comprehensive Redis playground** for:
 ## 📁 Project Structure
 
 ```
-redis-cluster/
+reluster/
 ├── docker-compose.ha.yml         # Sentinel/HA setup (master, slaves, sentinels, commander)
 ├── docker-compose.cluster.yml    # Redis Cluster (6 nodes + RedisInsight)
 ├── Makefile                      # Automation commands

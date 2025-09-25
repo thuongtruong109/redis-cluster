@@ -54,3 +54,8 @@ clt-check:
 clt-test:
 	chmod +x tests/clt.sh
 	bash ./tests/clt.sh
+
+clean:
+	docker-compose -f docker-compose.cluster.yml down -v
+	docker-compose -f docker-compose.ha.yml down -v
+	docker volume prune -f
