@@ -1,7 +1,6 @@
 - Integrate health checks for each node, alert when a node is down.
 - Automatically add/remove nodes (scale out/in), script to automatically re-balance slots.
 - Automatically rollback when errors are detected.
-- Benchmark performance with redis-benchmark.
 
 - Integrate security testing (scan config, check open ports, check password).
 - Automatically send CI/CD result reports via email or chat.

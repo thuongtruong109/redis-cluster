@@ -17,20 +17,20 @@ function wait_for_replication() {
   done
 
   for i in 1 2 3; do
-    docker exec sentinel_$i redis-cli -p 26379 PING
     timeout 60 bash -c "until docker exec sentinel_$i redis-cli -p 26379 ping; do sleep 2; done"
   done
+
   echo "✅ Replication is ready"
 }
 
 function validate_config() {
-	@for config in ha/master.conf ha/slave.conf ha/sentinel.conf cluster/node.conf; do \
-		if [ ! -f "$$config" ]; then \
-			echo "❌ Missing configuration file: $$config"; \
-			exit 1; \
-		fi; \
-	done
-	@echo "✅ All configuration files present"
+  for config in ha/master.conf ha/slave.conf ha/sentinel.conf cluster/node.conf; do
+    if [ ! -f "$config" ]; then
+      echo "❌ Missing configuration file: $config"
+      exit 1
+    fi
+  done
+  echo "✅ All configuration files present"
 }
 
 case "${1:-}" in
@@ -42,6 +42,7 @@ case "${1:-}" in
     ;;
   all|"")
     wait_for_replication
+    validate_config
     ;;
   *)
     echo "Usage: $0 {ha-check|validate|all}"

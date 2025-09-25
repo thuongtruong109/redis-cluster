@@ -9,8 +9,8 @@ format:
 	@sed -i 's/\r$$//' Makefile ha/sentinel.conf ha/slave.conf ha/master.conf cluster/node.conf
 
 validate:
-	docker-compose -f $(HA_COMPOSE_FILE) config --quiet
-	docker-compose -f $(CLT_COMPOSE_FILE) config --quiet
+	docker compose -f $(HA_COMPOSE_FILE) config --quiet
+	docker compose -f $(CLT_COMPOSE_FILE) config --quiet
 	@echo "✅ Docker Compose files are valid"
 	chmod +x scripts/prepare.sh
 	bash scripts/prepare.sh validate

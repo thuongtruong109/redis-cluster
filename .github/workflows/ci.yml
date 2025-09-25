@@ -95,9 +95,7 @@ jobs:
           sleep 20
 
       - name: Run performance benchmarks
-        run: |
-          redis-benchmark -h localhost -p 6379 -a masterpass -t set -n 10000 -c 50 -q
-          redis-benchmark -h localhost -p 6380 -a masterpass -t get -n 10000 -c 50 -q
+        run: make ha-bench
 
       - name: Cleanup performance test
         if: always()
