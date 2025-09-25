@@ -33,6 +33,38 @@ function validate_config() {
   echo "✅ All configuration files present"
 }
 
+function replication_security_scan() {
+  echo "🔐 Running security checks..."
+
+  if command -v trivy >/dev/null 2>&1; then
+    echo "🛡️ Scanning docker-compose with Trivy..."
+    trivy config --exit-code 1 --severity HIGH,CRITICAL $HA_COMPOSE_FILE || {
+      echo "❌ Security issues found in config"
+      exit 1
+    }
+  else
+    echo "⚠️ Trivy not installed, skipping config scan"
+  fi
+
+  for container in $HA_MASTER_NAME slave_1 slave_2 slave_3 sentinel_1 sentinel_2 sentinel_3; do
+    echo "📡 Checking open ports in $container..."
+    docker exec $container netstat -tuln | grep -E '6379|6380|26379' || {
+      echo "❌ Unexpected open ports in $container"
+      exit 1
+    }
+  done
+
+  echo "🔑 Checking password requirement..."
+  if docker exec $HA_MASTER_NAME redis-cli ping >/dev/null 2>&1; then
+    echo "❌ Redis master allows unauthenticated access!"
+    exit 1
+  else
+    echo "✅ Redis master requires password"
+  fi
+
+  echo "✅ Security scan passed"
+}
+
 case "${1:-}" in
   ha-check)
     wait_for_replication
@@ -40,12 +72,16 @@ case "${1:-}" in
   validate)
     validate_config
     ;;
+  ha-scan)
+    replication_security_scan
+    ;;
   all|"")
     wait_for_replication
     validate_config
+    replication_security_scan
     ;;
   *)
-    echo "Usage: $0 {ha-check|validate|all}"
+    echo "Usage: $0 {ha-check|validate|ha-scan|all}"
     exit 1
     ;;
 esac

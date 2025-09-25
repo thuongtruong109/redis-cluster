@@ -24,6 +24,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Start Redis Replica
+        run: |
+          make ha
+          sleep 20
+
+      - name: Replica security scan
+        run: make ha-scan
+
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
@@ -49,7 +57,7 @@ jobs:
       - name: Start Redis Replica
         run: |
           make ha
-          sleep 30
+          sleep 20
 
       - name: Wait for services to be ready
         run: make ha-check

@@ -35,6 +35,10 @@ ha-check: ha
 	chmod +x scripts/prepare.sh
 	bash scripts/prepare.sh ha-check
 
+ha-scan: ha
+	chmod +x scripts/prepare.sh
+	bash scripts/prepare.sh ha-scan
+
 ha-master: ha
 	docker exec -it sentinel_1 redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster
 
