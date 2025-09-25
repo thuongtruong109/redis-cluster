@@ -1,8 +1,21 @@
-.PHONY: format ha ha-master ha-slave ha-test-failover ha-test ha-health clt clt-create clt-check clt-demo clt-test
+.PHONY: format commander commander-ha commander-clt ha ha-master ha-slave ha-test-failover ha-test ha-health ha-cli clt clt-create clt-check clt-demo clt-cli clt-test
 
 format:
 	@dos2unix Makefile
-	@sed -i 's/\r$$//' Makefile ha/sentinel.conf ha/slave.conf ha/master.conf configs/cluster.conf
+	@sed -i 's/\r$$//' Makefile ha/sentinel.conf ha/slave.conf ha/master.conf cluster/node.conf
+
+commander:
+	@if [ -z "$$CONFIG_PATH" ]; then \
+		echo "❌ CONFIG_PATH is not set."; \
+		exit 1; \
+	fi
+	docker compose -f docker-compose.dev.yml up -d --force-recreate commander
+
+commander-ha:
+	@$(MAKE) commander CONFIG_PATH=ha.json
+
+commander-clt:
+	@$(MAKE) commander CONFIG_PATH=cluster.json
 
 ha:
 	docker-compose -f docker-compose.ha.yml down -v
@@ -28,9 +41,12 @@ ha-health:
 	chmod +x scripts/health.sh
 	bash ./scripts/health.sh
 
+ha-cli:
+	docker exec -it $$(docker ps -qf "name=master_1") redis-cli -p 6379 -a masterpass
+
 clt:
 	docker-compose -f docker-compose.cluster.yml down -v
-	docker-compose -f docker-compose.cluster.yml up -d --build
+	docker-compose -f docker-compose.cluster.yml up -d --force-recreate
 
 clt-create:
 	docker exec -it node-1 redis-cli -a redispw --cluster create \
@@ -55,7 +71,11 @@ clt-test:
 	chmod +x tests/clt.sh
 	bash ./tests/clt.sh
 
+clt-cli:
+	docker exec -it $$(docker ps -qf "name=node-1") redis-cli -c -p 6379 -a redispw
+
 clean:
 	docker-compose -f docker-compose.cluster.yml down -v
 	docker-compose -f docker-compose.ha.yml down -v
+	docker-compose -f docker-compose.dev.yml down -v
 	docker volume prune -f

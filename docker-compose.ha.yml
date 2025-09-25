@@ -1,13 +1,18 @@
 services:
-  commander:
-    image: rediscommander/redis-commander:latest
-    container_name: commander
-    volumes:
-      - ./commander/ha.json:/redis-commander/config/local-production.json
-    ports:
-      - "8081:8081"
-    networks:
-      - redisnet
+  # commander:
+  #   image: rediscommander/redis-commander:latest
+  #   container_name: commander
+  #   volumes:
+  #     - ./commander/ha.json:/redis-commander/config/local-production.json:ro
+  #   ports:
+  #     - "8081:8081"
+  #   networks:
+  #     - redisnet
+  #   depends_on:
+  #     - redis-master
+  #     - slave_1
+  #     - slave_2
+  #     - slave_3
 
   redis-master:
     image: redis:7.2
@@ -116,6 +121,7 @@ services:
 
 networks:
   redisnet:
+    name: redisnet
     driver: bridge
     ipam:
       config:

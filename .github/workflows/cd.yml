@@ -41,8 +41,8 @@ jobs:
       - name: 🏷️ Tag image for GHCR
         run: |
           docker tag thuongtruong1009/${{ env.IMAGE_NAME }}:latest \
-            ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ github.repository }}:latest
 
       - name: 📤 Push image to GHCR
         run: |
-          docker push ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_NAME }}:latest
+          docker push ${{ env.REGISTRY }}/${{ github.repository }}:latest

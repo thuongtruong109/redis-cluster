@@ -4,8 +4,8 @@
     <img src="https://img.shields.io/badge/Docker-Compose-brightgreen?logo=docker&logoColor=white" alt="Docker Compose" height="28"/>
     <img src="https://img.shields.io/badge/Cluster-Sharding-brightgreen?logo=redis&logoColor=white" alt="Redis" height="28"/>
     <img src="https://img.shields.io/badge/Sentinel-HA-brightgreen?logo=redis&logoColor=white" alt="Sentinel" height="28"/>
-    <img src="https://img.shields.io/badge/RedisCommander-UI-brightgreen?logo=redis&logoColor=white" alt="RedisCommander" height="28"/>
-   <img src="https://img.shields.io/badge/License-Apache%202.0-brightgreen.svg" alt="License" height="28"/>
+    <img src="https://img.shields.io/badge/Commander-UI-brightgreen?logo=redis&logoColor=white" alt="Commander" height="28"/>
+   <img src="https://img.shields.io/badge/License-Apache%202.0-brightgreen?logo=apache&logoColor=white" alt="License" height="28"/>
   </p>
 
    <img src="./.github/assets/banner.webp" alt="Redis Cluster Banner" />

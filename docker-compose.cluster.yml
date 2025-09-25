@@ -71,6 +71,7 @@ services:
 
 networks:
   redisnet:
+    name: redisnet
     driver: bridge
 
 volumes:
