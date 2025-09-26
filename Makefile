@@ -74,13 +74,13 @@ ha-bench-failover:
 	$(MAKE) clean
 
 ha-backup:
-	chmod +x scripts/backup.sh
-	bash ./scripts/backup.sh
+	chmod +x scripts/ha-backup.sh
+	bash ./scripts/ha-backup.sh
 
 ha-health:
 	@echo "Flags: --basic, --full --report, --load-test, --metrics-only, --help"
-	chmod +x scripts/health.sh
-	bash ./scripts/health.sh --basic
+	chmod +x scripts/ha-health.sh
+	bash ./scripts/ha-health.sh --basic
 
 ha-cli:
 	docker exec -it $$(docker ps -qf "name=master_1") redis-cli -p 6379 -a masterpass

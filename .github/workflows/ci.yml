@@ -38,13 +38,14 @@ jobs:
           scan-type: "config"
           hide-progress: false
           format: "sarif"
-          output: "trivy-results.sarif"
+          output: ${{ github.workspace }}/trivy-results.sarif
+          exit-code: 0
 
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        if: always() && hashFiles('trivy-results.sarif') != ''
         with:
-          sarif_file: "trivy-results.sarif"
+          sarif_file: ${{ github.workspace }}/trivy-results.sarif
 
   integration-tests:
     runs-on: ubuntu-latest
