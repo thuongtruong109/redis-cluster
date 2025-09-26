@@ -30,7 +30,7 @@ jobs:
           sleep 20
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@v0.33.1
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           scan-type: "config"
           hide-progress: false
@@ -123,7 +123,7 @@ jobs:
           sleep 20
 
       - name: Run Trivy vulnerability scanner for cluster
-        uses: aquasecurity/trivy-action@v0.33.1
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           scan-type: "config"
           hide-progress: false
@@ -215,13 +215,13 @@ jobs:
           key: retry-count-${{ github.run_id }}
 
       - name: Upload Metrics JSON
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: redis-health-metrics
           path: /tmp/redis_cluster_metrics.json
 
       - name: Upload Rollback Logs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: redis-rollback-logs
           path: /tmp/redis_cluster_rollback.log

@@ -44,7 +44,7 @@ init_cluster() {
   for i in $(seq 1 $TOTAL_NODES); do
     NODE_LIST="$NODE_LIST node-$i:$REDIS_PORT"
   done
-  echo "yes" | docker exec -i node-1 redis-cli -a "$CLUSTER_PASS" --cluster create $NODE_LIST --cluster-replicas 1
+  docker exec -i node-1 redis-cli -a "$CLUSTER_PASS" --cluster create $NODE_LIST --cluster-replicas 1 --cluster-yes
 }
 
 show_status() {

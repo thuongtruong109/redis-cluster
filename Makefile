@@ -54,23 +54,23 @@ ha-test:
 	bash ./tests/ha.sh
 
 ha-bench:
-	chmod +x scripts/ha-benchmark.sh
-	bash scripts/ha-benchmark.sh all
+	chmod +x tests/ha-bench.sh
+	bash tests/ha-bench.sh all
 	$(MAKE) clean
 
 ha-bench-master:
-	chmod +x scripts/ha-benchmark.sh
-	bash scripts/ha-benchmark.sh master
+	chmod +x tests/ha-bench.sh
+	bash tests/ha-bench.sh master
 	$(MAKE) clean
 
 ha-bench-slave:
-	chmod +x scripts/ha-benchmark.sh
-	bash scripts/ha-benchmark.sh slave
+	chmod +x tests/ha-bench.sh
+	bash tests/ha-bench.sh slave
 	$(MAKE) clean
 
 ha-bench-failover:
-	chmod +x scripts/ha-benchmark.sh
-	bash scripts/ha-benchmark.sh failover
+	chmod +x tests/ha-bench.sh
+	bash tests/ha-bench.sh failover
 	$(MAKE) clean
 
 ha-backup:
