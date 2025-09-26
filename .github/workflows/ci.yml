@@ -16,7 +16,7 @@ jobs:
       - name: Validate Compose and check config files
         run: make validate
 
-  replica_security-scan:
+  replica-security-scan:
     runs-on: ubuntu-latest
     permissions:
       security-events: write
@@ -47,10 +47,9 @@ jobs:
         with:
           sarif_file: ${{ github.workspace }}/trivy-results.sarif
 
-  replica_integration-tests:
+  replica-integration-tests:
     runs-on: ubuntu-latest
     needs: [lint-and-validate]
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -84,11 +83,10 @@ jobs:
         if: always()
         run: make clean
 
-  replica_performance-tests:
+  replica-performance-tests:
     runs-on: ubuntu-latest
-    needs: [replica_integration-tests]
+    needs: [replica-integration-tests]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -110,7 +108,7 @@ jobs:
         if: always()
         run: make clean
 
-  cluster_security-scan:
+  cluster-security-scan:
     runs-on: ubuntu-latest
     permissions:
       security-events: write
@@ -142,7 +140,93 @@ jobs:
         with:
           sarif_file: ${{ github.workspace }}/trivy-cluster-results.sarif
 
-  cluster_integration-tests:
+  cluster-health-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Restore retry count
+        uses: actions/cache@v4
+        with:
+          path: .retry_count
+          key: retry-count-${{ github.run_id }}
+          restore-keys: retry-count-
+
+      - name: Start Redis Cluster
+        run: |
+          make clt
+          sleep 20
+
+      - name: Run Cluster Health Check
+        id: health
+        run: |
+          set +e
+          make clt-health
+          STATUS=$?
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
+          set -e
+
+      - name: Reset Retry Count on Success
+        if: steps.health.outputs.status == '0'
+        run: |
+          echo "Cluster healthy ✅ → resetting retry count"
+          echo 0 > .retry_count
+
+      - name: Auto Rollback Failed Nodes with Retry Limit
+        if: steps.health.outputs.status != '0'
+        run: |
+          MAX_RETRIES=3
+          RETRY_COUNT_FILE=".retry_count"
+
+          # load retry count
+          if [ -f "$RETRY_COUNT_FILE" ]; then
+            RETRY_COUNT=$(cat "$RETRY_COUNT_FILE")
+          else
+            RETRY_COUNT=0
+          fi
+
+          echo "🔄 Current retry count: $RETRY_COUNT"
+
+          if [ "$RETRY_COUNT" -lt "$MAX_RETRIES" ]; then
+            chmod +x scripts/clt_rollback.sh
+
+            DOWN_NODES=$(grep "Redis node .* not responding" /tmp/redis_cluster_health.log | awk '{print $4}' | tr '\n' ' ')
+            if [ -z "$DOWN_NODES" ]; then
+              echo "No nodes to rollback."
+            else
+              echo "Rollback nodes: $DOWN_NODES"
+              CLUSTER_PASS="redispw" ./scripts/clt_rollback.sh $DOWN_NODES
+            fi
+
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            echo "$RETRY_COUNT" > "$RETRY_COUNT_FILE"
+            echo "Retry attempt $RETRY_COUNT/$MAX_RETRIES"
+          else
+            echo "❌ Retry limit reached ($MAX_RETRIES). Aborting rollback."
+            exit 1
+          fi
+
+      - name: Save retry count
+        if: always()
+        uses: actions/cache@v4
+        with:
+          path: .retry_count
+          key: retry-count-${{ github.run_id }}
+
+      - name: Upload Metrics JSON
+        uses: actions/upload-artifact@v3
+        with:
+          name: redis-health-metrics
+          path: /tmp/redis_cluster_metrics.json
+
+      - name: Upload Rollback Logs
+        uses: actions/upload-artifact@v3
+        with:
+          name: redis-rollback-logs
+          path: /tmp/redis_cluster_rollback.log
+
+  cluster-integration-tests:
     runs-on: ubuntu-latest
     needs: [lint-and-validate]
     steps:
@@ -154,58 +238,8 @@ jobs:
           make clt
           sleep 20
 
-      - name: Wait for cluster services to be ready
-        run: make clt-check
-
       - name: Run Cluster integration tests
         run: make clt-test
-
-      - name: Run Cluster Health Check
-        id: health
-        run: |
-          make clt-health
-          STATUS=$?
-          echo "status=$STATUS" >> $GITHUB_OUTPUT
-          set -e
-
-      - name: Upload Health Report
-        uses: actions/upload-artifact@v3
-        with:
-          name: redis-health-report
-          path: /tmp/redis_cluster_health_report_*.txt
-
-      - name: Upload Metrics JSON
-        uses: actions/upload-artifact@v3
-        with:
-          name: redis-health-metrics
-          path: /tmp/redis_cluster_metrics.json
-
-      - name: Auto Rollback Failed Node
-        if: steps.health.outputs.status != '0'
-        run: |
-          echo "Health check failed! Starting auto-rollback..."
-          # Lấy node down từ log
-          DOWN_NODE=$(grep "Redis node .* not responding" /tmp/redis_cluster_health.log | head -n1 | awk '{print $4}')
-          echo "Node to rollback: $DOWN_NODE"
-          if [ -n "$DOWN_NODE" ]; then
-            echo "Stopping $DOWN_NODE..."
-            docker stop "$DOWN_NODE"
-            docker rm "$DOWN_NODE"
-
-            echo "Recreating $DOWN_NODE..."
-            docker-compose -f docker-compose.cluster.yml up -d "$DOWN_NODE"
-
-            echo "Adding $DOWN_NODE back to cluster..."
-            chmod +x scripts/clt-scale.sh
-            CLUSTER_PASS="redispw" bash ./scripts/clt-scale.sh add "$DOWN_NODE"
-
-            echo "Rebalancing cluster..."
-            CLUSTER_PASS="redispw" bash ./scripts/clt-scale.sh rebalance
-
-            echo "Rollback completed for $DOWN_NODE"
-          else
-            echo "No down node identified in log, manual intervention needed!"
-          fi
 
       - name: Collect logs on failure
         if: failure()
@@ -220,14 +254,15 @@ jobs:
         if: always()
         run: make clean
 
-  cluster_performance_tests:
+  cluster-performance-tests:
     runs-on: ubuntu-latest
-    needs: [cluster_integration_tests]
+    needs: [cluster-integration-tests]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Uncomment and adjust the following if you want to run cluster benchmarks
       # - name: Install redis-benchmark
       #   run: |
       #     sudo apt-get update
@@ -235,7 +270,7 @@ jobs:
 
       # - name: Start Redis Cluster
       #   run: |
-      #     make cluster
+      #     make clt
       #     sleep 20
 
       # - name: Run cluster performance benchmarks
@@ -249,22 +284,20 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       [
-        replica_integration-tests,
-        replica_performance-tests,
-        replica_security-scan,
-        cluster_integration-tests,
-        cluster_performance-tests,
-        cluster_security-scan,
+        replica-integration-tests,
+        replica-performance-tests,
+        replica-security-scan,
+        cluster-health-check,
+        cluster-integration-tests,
+        cluster-performance-tests,
+        cluster-security-scan,
       ]
     if: always()
-
     steps:
       - name: Notify on success
-        if: ${{ needs.replica_integration-tests.result == 'success' && needs.cluster_integration-tests.result == 'success' }}
-        run: |
-          echo "✅ All tests passed! Redis cluster and replica are healthy."
+        if: ${{ contains(needs.*.result, 'failure') == false }}
+        run: echo "✅ All jobs passed! Redis cluster and replica are healthy."
 
       - name: Notify on failure
-        if: ${{ needs.replica_integration-tests.result == 'failure' || needs.cluster_integration-tests.result == 'failure' }}
-        run: |
-          echo "❌ Tests failed! Check the logs for details."
+        if: ${{ contains(needs.*.result, 'failure') }}
+        run: echo "❌ One or more jobs failed! Check the logs for details."
