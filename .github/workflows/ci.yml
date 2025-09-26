@@ -257,19 +257,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Uncomment and adjust the following if you want to run cluster benchmarks
-      # - name: Install redis-benchmark
-      #   run: |
-      #     sudo apt-get update
-      #     sudo apt-get install -y redis-tools
+      - name: Install redis-benchmark
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y redis-tools
 
-      # - name: Start Redis Cluster
-      #   run: |
-      #     make clt
-      #     sleep 20
+      - name: Start Redis Cluster
+        run: |
+          make clt
+          sleep 20
 
-      # - name: Run cluster performance benchmarks
-      #   run: make clt-bench
+      - name: Run cluster performance benchmarks
+        run: make clt-bench
 
       - name: Cleanup performance test
         if: always()

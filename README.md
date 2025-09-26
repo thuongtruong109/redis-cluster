@@ -11,8 +11,6 @@
    <img src="./.github/assets/banner.webp" alt="Redis Cluster Banner" />
 
    <p><b>A complete, ready-to-run Redis Sentinel & Cluster environment with Docker Compose for learning, testing, and deploying Redis in real-world scenarios.</b></p>
-
-  <!-- <img src="https://skillicons.dev/icons?i=redis,docker,bash,linux,github" height="45"/> -->
 </div>
 
 ## 📝 Overview
@@ -384,3 +382,4 @@ Bug reports & feature requests welcome in [Issues](https://github.com/thuongtruo
 
 <!-- https://medium.com/@jielim36/basic-docker-compose-and-build-a-redis-cluster-with-docker-compose-0313f063afb6 -->
 <!-- https://dev.to/hedgehog/set-up-redis-diskless-replication-359 -->
+<!-- <img src="https://skillicons.dev/icons?i=redis,docker,bash,linux,github" height="45"/> -->

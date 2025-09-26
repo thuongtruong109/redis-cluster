@@ -6,7 +6,6 @@ TOTAL_MASTERS=3
 TOTAL_REPLICAS=3
 TOTAL_NODES=$((TOTAL_MASTERS + TOTAL_REPLICAS))
 
-# Tên container: node-1 .. node-6
 CLUSTER_NODES=()
 for i in $(seq 1 $TOTAL_NODES); do
   CLUSTER_NODES+=("node-$i")
@@ -16,13 +15,11 @@ function wait_for_cluster() {
   echo "⏳ Waiting for Redis Cluster to be ready..."
   sleep 20
 
-  # Đảm bảo tất cả node up
   for node in "${CLUSTER_NODES[@]}"; do
     echo "- Checking $node..."
     timeout 60 bash -c "until docker exec $node redis-cli -a $CLUSTER_PASS -p $CLUSTER_PORT ping >/dev/null 2>&1; do sleep 2; done"
   done
 
-  # Kiểm tra cluster state
   if docker exec node-1 redis-cli -a $CLUSTER_PASS cluster info | grep -q "cluster_state:ok"; then
     echo "✅ Cluster state OK"
   else
@@ -72,7 +69,7 @@ function cluster_security_scan() {
 
 function show_status() {
   echo "📌 Cluster status:"
-  docker exec -i node-1 redis-cli -a "$CLUSTER_PASS" -p $REDIS_PORT cluster nodes \
+  docker exec node-1 redis-cli -a "$CLUSTER_PASS" -p $CLUSTER_PORT cluster nodes \
     | awk '{
         if ($3 ~ /master/) {
           printf("🟢 MASTER  %s  %s  slots:%s\n", $2, $1, $9);
