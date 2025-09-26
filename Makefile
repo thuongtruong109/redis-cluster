@@ -118,6 +118,10 @@ clt-scale:
 	CLUSTER_PASS="redispw" bash ./scripts/clt.sh remove node-6
 	CLUSTER_PASS="redispw" bash ./scripts/clt.sh rebalance
 
+clt-health:
+	chmod +x scripts/clt-health.sh
+	bash ./scripts/clt-health.sh
+
 clean:
 	docker compose -f $(CLT_COMPOSE_FILE) down -v
 	docker compose -f $(HA_COMPOSE_FILE) down -v
