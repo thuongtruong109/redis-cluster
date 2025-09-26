@@ -67,13 +67,13 @@ function replication_security_scan() {
 }
 
 case "${1:-}" in
-  ha-check)
+  check)
     wait_for_replication
     ;;
   validate)
     validate_config
     ;;
-  ha-scan)
+  scan)
     replication_security_scan
     ;;
   all|"")
@@ -82,7 +82,7 @@ case "${1:-}" in
     replication_security_scan
     ;;
   *)
-    echo "Usage: $0 {ha-check|validate|ha-scan|all}"
+    echo "Usage: $0 {check|validate|scan|all}"
     exit 1
     ;;
 esac

@@ -1,4 +1,3 @@
-- Integrate health checks for each node, alert when a node is down.
 - Automatically rollback when errors are detected.
 
 - Automatically send CI/CD result reports via email or chat.

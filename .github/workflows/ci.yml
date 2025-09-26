@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  ha/lint-and-validate:
+  lint-and-validate:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -16,7 +16,7 @@ jobs:
       - name: Validate Compose and check config files
         run: make validate
 
-  ha/security-scan:
+  replica_security-scan:
     runs-on: ubuntu-latest
     permissions:
       security-events: write
@@ -47,9 +47,9 @@ jobs:
         with:
           sarif_file: ${{ github.workspace }}/trivy-results.sarif
 
-  ha/integration-tests:
+  replica_integration-tests:
     runs-on: ubuntu-latest
-    needs: [ha/lint-and-validate]
+    needs: [lint-and-validate]
 
     steps:
       - name: Checkout code
@@ -78,15 +78,15 @@ jobs:
           docker compose -f docker-compose.ha.yml logs
           docker compose -f docker-compose.ha.yml ps
           docker network ls
-          docker network inspect reluster_redisnet || true
+          docker network inspect redisnet || true
 
       - name: Cleanup
         if: always()
         run: make clean
 
-  ha/performance-tests:
+  replica_performance-tests:
     runs-on: ubuntu-latest
-    needs: [ha/integration-tests]
+    needs: [replica_integration-tests]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
@@ -98,7 +98,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y redis-tools
 
-      - name: Start Redis Replica
+      - name: Start Redis Cluster
         run: |
           make ha
           sleep 20
@@ -110,18 +110,161 @@ jobs:
         if: always()
         run: make clean
 
-  ha/notify:
+  cluster_security-scan:
     runs-on: ubuntu-latest
-    needs: [ha/integration-tests, ha/performance-tests, ha/security-scan]
+    permissions:
+      security-events: write
+    needs: [lint_and_validate]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Start Redis Cluster
+        run: |
+          make clt
+          sleep 20
+
+      - name: Run Trivy vulnerability scanner for cluster
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "config"
+          hide-progress: false
+          format: "sarif"
+          output: ${{ github.workspace }}/trivy-cluster-results.sarif
+          exit-code: 0
+
+      - name: Run Cluster security scan
+        run: make clt-scan
+
+      - name: Upload Cluster Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('trivy-cluster-results.sarif') != ''
+        with:
+          sarif_file: ${{ github.workspace }}/trivy-cluster-results.sarif
+
+  cluster_integration-tests:
+    runs-on: ubuntu-latest
+    needs: [lint-and-validate]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Start Redis Cluster
+        run: |
+          make clt
+          sleep 20
+
+      - name: Wait for cluster services to be ready
+        run: make clt-check
+
+      - name: Run Cluster integration tests
+        run: make clt-test
+
+      - name: Run Cluster Health Check
+        id: health
+        run: |
+          make clt-health
+          STATUS=$?
+          echo "::set-output name=status::$STATUS"
+          set -e
+
+      - name: Upload Health Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: redis-health-report
+          path: /tmp/redis_cluster_health_report_*.txt
+
+      - name: Upload Metrics JSON
+        uses: actions/upload-artifact@v3
+        with:
+          name: redis-health-metrics
+          path: /tmp/redis_cluster_metrics.json
+
+      - name: Auto Rollback Failed Node
+        if: steps.health.outputs.status != '0'
+        run: |
+          echo "Health check failed! Starting auto-rollback..."
+          # Lấy node down từ log
+          DOWN_NODE=$(grep "Redis node .* not responding" /tmp/redis_cluster_health.log | head -n1 | awk '{print $4}')
+          echo "Node to rollback: $DOWN_NODE"
+          if [ -n "$DOWN_NODE" ]; then
+            echo "Stopping $DOWN_NODE..."
+            docker stop "$DOWN_NODE"
+            docker rm "$DOWN_NODE"
+
+            echo "Recreating $DOWN_NODE..."
+            docker-compose -f docker-compose.cluster.yml up -d "$DOWN_NODE"
+
+            echo "Adding $DOWN_NODE back to cluster..."
+            chmod +x scripts/clt-scale.sh
+            CLUSTER_PASS="redispw" bash ./scripts/clt-scale.sh add "$DOWN_NODE"
+
+            echo "Rebalancing cluster..."
+            CLUSTER_PASS="redispw" bash ./scripts/clt-scale.sh rebalance
+
+            echo "Rollback completed for $DOWN_NODE"
+          else
+            echo "No down node identified in log, manual intervention needed!"
+          fi
+
+      - name: Collect logs on failure
+        if: failure()
+        run: |
+          make clt-status
+          docker compose -f docker-compose.cluster.yml logs
+          docker compose -f docker-compose.cluster.yml ps
+          docker network ls
+          docker network inspect redisnet || true
+
+      - name: Cleanup
+        if: always()
+        run: make clean
+
+  cluster_performance_tests:
+    runs-on: ubuntu-latest
+    needs: [cluster_integration_tests]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # - name: Install redis-benchmark
+      #   run: |
+      #     sudo apt-get update
+      #     sudo apt-get install -y redis-tools
+
+      # - name: Start Redis Cluster
+      #   run: |
+      #     make cluster
+      #     sleep 20
+
+      # - name: Run cluster performance benchmarks
+      #   run: make clt-bench
+
+      - name: Cleanup performance test
+        if: always()
+        run: make clean
+
+  notify:
+    runs-on: ubuntu-latest
+    needs:
+      [
+        replica_integration-tests,
+        replica_performance-tests,
+        replica_security-scan,
+        cluster_integration-tests,
+        cluster_performance-tests,
+        cluster_security-scan,
+      ]
     if: always()
 
     steps:
       - name: Notify on success
-        if: ${{ needs.ha/integration-tests.result == 'success' }}
+        if: ${{ needs.replica_integration-tests.result == 'success' && needs.cluster_integration-tests.result == 'success' }}
         run: |
-          echo "✅ All tests passed! Redis cluster is healthy."
+          echo "✅ All tests passed! Redis cluster and replica are healthy."
 
       - name: Notify on failure
-        if: ${{ needs.ha/integration-tests.result == 'failure' }}
+        if: ${{ needs.replica_integration-tests.result == 'failure' || needs.cluster_integration-tests.result == 'failure' }}
         run: |
           echo "❌ Tests failed! Check the logs for details."

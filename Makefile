@@ -12,8 +12,8 @@ validate:
 	docker compose -f $(HA_COMPOSE_FILE) config --quiet
 	docker compose -f $(CLT_COMPOSE_FILE) config --quiet
 	@echo "✅ Docker Compose files are valid"
-	chmod +x scripts/prepare.sh
-	bash scripts/prepare.sh validate
+	chmod +x scripts/ha.sh
+	bash scripts/ha.sh validate
 
 commander:
 	@if [ -z "$$CONFIG_PATH" ]; then \
@@ -32,12 +32,12 @@ ha:
 	docker compose -f $(HA_COMPOSE_FILE) up -d --force-recreate
 
 ha-check:
-	chmod +x scripts/prepare.sh
-	bash scripts/prepare.sh ha-check
+	chmod +x scripts/ha.sh
+	bash scripts/ha.sh check
 
 ha-scan:
-	chmod +x scripts/prepare.sh
-	bash scripts/prepare.sh ha-scan
+	chmod +x scripts/ha.sh
+	bash scripts/ha.sh scan
 
 ha-master:
 	docker exec -it sentinel_1 redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster
@@ -120,7 +120,8 @@ clt-scale:
 
 clt-health:
 	chmod +x scripts/clt-health.sh
-	bash ./scripts/clt-health.sh
+	set +e
+	bash ./scripts/clt-health.sh --report
 
 clean:
 	docker compose -f $(CLT_COMPOSE_FILE) down -v
