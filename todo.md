@@ -1,5 +1,3 @@
-- Automatically rollback when errors are detected.
-
 - Automatically send CI/CD result reports via email or chat.
 - Integrate Prometheus + Grafana to monitor Redis.
 - Alert via Slack, Email, Telegram when a node is down/failover occurs.

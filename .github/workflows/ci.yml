@@ -30,7 +30,7 @@ jobs:
           sleep 20
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@v0.33.1
         with:
           scan-type: "config"
           hide-progress: false
@@ -114,7 +114,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       security-events: write
-    needs: [lint_and_validate]
+    needs: [lint-and-validate]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -125,7 +125,7 @@ jobs:
           sleep 20
 
       - name: Run Trivy vulnerability scanner for cluster
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@v0.33.1
         with:
           scan-type: "config"
           hide-progress: false
@@ -165,7 +165,7 @@ jobs:
         run: |
           make clt-health
           STATUS=$?
-          echo "::set-output name=status::$STATUS"
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
           set -e
 
       - name: Upload Health Report
