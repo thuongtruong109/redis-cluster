@@ -12,7 +12,7 @@
 
    <p><b>A complete, ready-to-run Redis Sentinel & Cluster environment with Docker Compose for learning, testing, and deploying Redis in real-world scenarios.</b></p>
 
-  <img src="https://skillicons.dev/icons?i=redis,docker,bash,linux,github" height="45"/>
+  <!-- <img src="https://skillicons.dev/icons?i=redis,docker,bash,linux,github" height="45"/> -->
 </div>
 
 ## 📝 Overview

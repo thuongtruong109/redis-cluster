@@ -28,78 +28,75 @@ commander-ha:
 commander-clt:
 	@$(MAKE) commander CONFIG_PATH=cluster.json
 
-ha: validate
-	docker-compose -f $(HA_COMPOSE_FILE) up -d --force-recreate
+ha:
+	docker compose -f $(HA_COMPOSE_FILE) up -d --force-recreate
 
-ha-check: ha
+ha-check:
 	chmod +x scripts/prepare.sh
 	bash scripts/prepare.sh ha-check
 
-ha-scan: ha
+ha-scan:
 	chmod +x scripts/prepare.sh
 	bash scripts/prepare.sh ha-scan
 
-ha-master: ha
+ha-master:
 	docker exec -it sentinel_1 redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster
 
-ha-slave: ha
+ha-slave:
 	docker exec -it slave_1 redis-cli -a masterpass info replication
 
-ha-test-failover: ha
+ha-test-failover:
 	chmod +x tests/ha-failover.sh
 	bash ./tests/ha-failover.sh
 
-ha-test: ha
+ha-test:
 	chmod +x tests/ha.sh
 	bash ./tests/ha.sh
 
-ha-bench: ha
+ha-bench:
 	chmod +x scripts/ha-benchmark.sh
 	bash scripts/ha-benchmark.sh all
 	$(MAKE) clean
 
-ha-bench-master: ha
+ha-bench-master:
 	chmod +x scripts/ha-benchmark.sh
 	bash scripts/ha-benchmark.sh master
 	$(MAKE) clean
 
-ha-bench-slave: ha
+ha-bench-slave:
 	chmod +x scripts/ha-benchmark.sh
 	bash scripts/ha-benchmark.sh slave
 	$(MAKE) clean
 
-ha-bench-failover: ha
+ha-bench-failover:
 	chmod +x scripts/ha-benchmark.sh
 	bash scripts/ha-benchmark.sh failover
 	$(MAKE) clean
 
-ha-backup: ha
+ha-backup:
 	chmod +x scripts/backup.sh
 	bash ./scripts/backup.sh
 
-ha-health: ha-check
+ha-health:
 	@echo "Flags: --basic, --full --report, --load-test, --metrics-only, --help"
 	chmod +x scripts/health.sh
 	bash ./scripts/health.sh --basic
 
-ha-cli: ha
+ha-cli:
 	docker exec -it $$(docker ps -qf "name=master_1") redis-cli -p 6379 -a masterpass
 
-clt: validate
-	docker-compose -f $(CLT_COMPOSE_FILE) up -d --force-recreate
+clt:
+	docker compose -f $(CLT_COMPOSE_FILE) up -d --force-recreate node-1 node-2 node-3 node-4 node-5 node-6
 
-clt-create: clt
-	docker exec -it node-1 redis-cli -a redispw --cluster create \
-		node-1:6379 \
-		node-2:6379 \
-		node-3:6379 \
-		node-4:6379 \
-		node-5:6379 \
-		node-6:6379 \
-		--cluster-replicas 1 --cluster-yes
+clt-init:
+	chmod +x scripts/clt.sh
+	CLUSTER_PASS="redispw" bash ./scripts/clt.sh init
 
+clt-status:
+	chmod +x scripts/clt.sh
+	CLUSTER_PASS="redispw" bash ./scripts/clt.sh status
 
-clt-check: clt-create
+clt-check:
 	@echo "Checking the cluster status..."
 	docker exec -it node-1 redis-cli -a redispw cluster info
 	docker exec -it node-1 redis-cli -a redispw cluster nodes
@@ -107,15 +104,22 @@ clt-check: clt-create
 	docker exec -it node-1 redis-cli -a redispw -c set foo bar
 	docker exec -it node-2 redis-cli -a redispw -c get foo
 
-clt-test: clt clt-create clt-check
+clt-test:
 	chmod +x tests/clt.sh
 	bash ./tests/clt.sh
 
-clt-cli: clt
+clt-cli:
 	docker exec -it $$(docker ps -qf "name=node-1") redis-cli -c -p 6379 -a redispw
 
+clt-scale:
+	docker-compose -f $(CLT_COMPOSE_FILE) up -d node-7
+	chmod +x scripts/clt.sh
+	CLUSTER_PASS="redispw" bash ./scripts/clt.sh add node-7
+	CLUSTER_PASS="redispw" bash ./scripts/clt.sh remove node-6
+	CLUSTER_PASS="redispw" bash ./scripts/clt.sh rebalance
+
 clean:
-	docker-compose -f $(CLT_COMPOSE_FILE) down -v
-	docker-compose -f $(HA_COMPOSE_FILE) down -v
-	docker-compose -f $(DEV_COMPOSE_FILE) down -v
+	docker compose -f $(CLT_COMPOSE_FILE) down -v
+	docker compose -f $(HA_COMPOSE_FILE) down -v
+	docker compose -f $(DEV_COMPOSE_FILE) down -v
 	docker volume prune -f

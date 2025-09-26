@@ -2,7 +2,6 @@
 - Automatically add/remove nodes (scale out/in), script to automatically re-balance slots.
 - Automatically rollback when errors are detected.
 
-- Integrate security testing (scan config, check open ports, check password).
 - Automatically send CI/CD result reports via email or chat.
 - Integrate Prometheus + Grafana to monitor Redis.
 - Alert via Slack, Email, Telegram when a node is down/failover occurs.
@@ -22,8 +21,6 @@
 - Enable TLS for Redis.
 - Optimize maxmemory configuration and eviction policy.
 - Restrict IP access, firewall.
-- Script to automatically check security (open ports, password, config).
-
 - Integrate Redis with Kubernetes (Helm chart, StatefulSet, Operator).
 - Automate backup/restore of Redis data to cloud (S3, GCS).
 - Optimize Redis operating costs on cloud (AWS ElastiCache, Azure Cache for Redis).
