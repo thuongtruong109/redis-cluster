@@ -26,7 +26,7 @@ function wait_for_replication() {
 }
 
 function validate_config() {
-  for config in ha/master.conf ha/slave.conf ha/sentinel.conf cluster/node.conf; do
+  for config in ha/master.conf ha/slave.conf ha/sentinel.conf; do
     if [ ! -f "$config" ]; then
       echo "❌ Missing configuration file: $config"
       exit 1

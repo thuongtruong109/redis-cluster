@@ -179,7 +179,6 @@ jobs:
           MAX_RETRIES=3
           RETRY_COUNT_FILE=".retry_count"
 
-          # load retry count
           if [ -f "$RETRY_COUNT_FILE" ]; then
             RETRY_COUNT=$(cat "$RETRY_COUNT_FILE")
           else
@@ -189,15 +188,11 @@ jobs:
           echo "🔄 Current retry count: $RETRY_COUNT"
 
           if [ "$RETRY_COUNT" -lt "$MAX_RETRIES" ]; then
-            chmod +x scripts/clt_rollback.sh
-
-            DOWN_NODES=$(grep "Redis node .* not responding" /tmp/redis_cluster_health.log | awk '{print $4}' | tr '\n' ' ')
-            if [ -z "$DOWN_NODES" ]; then
-              echo "No nodes to rollback."
-            else
-              echo "Rollback nodes: $DOWN_NODES"
-              CLUSTER_PASS="redispw" ./scripts/clt_rollback.sh $DOWN_NODES
-            fi
+            echo "Running rollback script..."
+            make clt-rollback > /tmp/redis_cluster_rollback.log 2>&1 || {
+              echo "❌ Rollback script failed. Check the logs for details."
+              exit 1
+            }
 
             RETRY_COUNT=$((RETRY_COUNT + 1))
             echo "$RETRY_COUNT" > "$RETRY_COUNT_FILE"

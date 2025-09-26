@@ -5,27 +5,53 @@ CLUSTER_PASS=${CLUSTER_PASS:-"redispw"}
 MAX_RETRY=${MAX_RETRY:-3}
 STATE_FILE=".rollback-state.json"
 LOG_FILE="/tmp/redis_cluster_rollback.log"
+HEALTH_LOG="/tmp/redis_cluster_health.log"
 
 mkdir -p /tmp
 touch "$LOG_FILE"
 
+# fallback state management nếu không có jq
 init_state() {
   if [ ! -f "$STATE_FILE" ]; then
-    echo "{}" > "$STATE_FILE"
+    python3 - <<EOF
+import json
+with open("${STATE_FILE}", "w") as f:
+    json.dump({}, f)
+EOF
   fi
 }
 
 get_retry_count() {
   local node=$1
-  jq -r --arg node "$node" '.[$node] // 0' "$STATE_FILE"
+  python3 - "$node" "$STATE_FILE" <<EOF
+import json,sys
+node=sys.argv[1]
+f=sys.argv[2]
+data=json.load(open(f))
+print(data.get(node,0))
+EOF
 }
 
 increment_retry_count() {
   local node=$1
-  local current=$(get_retry_count "$node")
-  local new=$((current + 1))
-  jq --arg node "$node" --argjson val "$new" '.[$node]=$val' "$STATE_FILE" > tmp.$$.json
-  mv tmp.$$.json "$STATE_FILE"
+  python3 - "$node" "$STATE_FILE" <<EOF
+import json,sys
+node=sys.argv[1]; f=sys.argv[2]
+data=json.load(open(f))
+data[node] = data.get(node,0)+1
+json.dump(data,open(f,"w"))
+EOF
+}
+
+wait_node_ready() {
+  local node=$1
+  for i in {1..10}; do
+    if docker exec "$node" redis-cli -a "$CLUSTER_PASS" ping >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep 2
+  done
+  return 1
 }
 
 rollback_node() {
@@ -43,31 +69,46 @@ rollback_node() {
   docker rm "$node" || true
   docker compose -f docker-compose.cluster.yml up -d "$node"
 
-  sleep 5
-  if docker exec -i node-1 redis-cli -a "$CLUSTER_PASS" --cluster add-node "$node:6379" node-1:6379 --cluster-yes; then
-    docker exec -i node-1 redis-cli -a "$CLUSTER_PASS" --cluster rebalance node-1:6379 --cluster-use-empty-masters --cluster-yes
-    echo "[OK] Node $node rollback successfully." | tee -a "$LOG_FILE"
-    jq "del(.\"$node\")" "$STATE_FILE" > tmp.$$.json && mv tmp.$$.json "$STATE_FILE"
+  if wait_node_ready "$node"; then
+    if docker exec node-1 redis-cli -a "$CLUSTER_PASS" --cluster add-node "$node:6379" node-1:6379 --cluster-yes; then
+      docker exec node-1 redis-cli -a "$CLUSTER_PASS" --cluster rebalance node-1:6379 --cluster-use-empty-masters --cluster-yes
+      echo "[OK] Node $node rollback successfully." | tee -a "$LOG_FILE"
+      python3 - "$node" "$STATE_FILE" <<EOF
+import json,sys
+node=sys.argv[1]; f=sys.argv[2]
+data=json.load(open(f))
+if node in data: del data[node]
+json.dump(data,open(f,"w"))
+EOF
+    else
+      echo "[ERROR] Rollback failed for $node" | tee -a "$LOG_FILE"
+      increment_retry_count "$node"
+    fi
   else
-    echo "[ERROR] Rollback failed for $node" | tee -a "$LOG_FILE"
+    echo "[ERROR] Node $node did not become ready in time" | tee -a "$LOG_FILE"
     increment_retry_count "$node"
   fi
 }
 
-rollback_multiple_nodes() {
-  local nodes=("$@")
-  for node in "${nodes[@]}"; do
-    rollback_node "$node"
-  done
-}
-
 main() {
   init_state
-  if [ $# -eq 0 ]; then
-    echo "Usage: $0 node-1 node-2 ..."
+
+  if [ ! -f "$HEALTH_LOG" ]; then
+    echo "❌ Health log not found at $HEALTH_LOG"
     exit 1
   fi
-  rollback_multiple_nodes "$@"
+
+  DOWN_NODES=$(grep "Redis node .* not responding" "$HEALTH_LOG" | awk '{print $4}' | tr '\n' ' ' || true)
+
+  if [ -z "$DOWN_NODES" ]; then
+    echo "✅ No nodes to rollback."
+    exit 0
+  fi
+
+  echo "🔄 Found down nodes: $DOWN_NODES"
+  for node in $DOWN_NODES; do
+    rollback_node "$node"
+  done
 }
 
 main "$@"

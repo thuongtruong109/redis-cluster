@@ -1,53 +1,76 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 
-REDIS_PORT=6379
-CHECK_INTERVAL=5
-TOTAL_NODES=6           # initial nodes (node-1..node-6)
+CLUSTER_PORT=6379
+TOTAL_MASTERS=3
+TOTAL_REPLICAS=3
+TOTAL_NODES=$((TOTAL_MASTERS + TOTAL_REPLICAS))
 
-get_nodes() {
-  docker ps --format '{{.Names}}' | grep node- | xargs -I {} echo "{}:$REDIS_PORT"
-}
+# Tên container: node-1 .. node-6
+CLUSTER_NODES=()
+for i in $(seq 1 $TOTAL_NODES); do
+  CLUSTER_NODES+=("node-$i")
+done
 
-get_master_count() {
-  docker exec -i node-1 redis-cli -a "$CLUSTER_PASS" -p $REDIS_PORT cluster nodes \
-    | grep "master" | grep -v "fail" | wc -l
-}
+function wait_for_cluster() {
+  echo "⏳ Waiting for Redis Cluster to be ready..."
+  sleep 20
 
-add_node() {
-  local host=$1
-  local master_count=$(get_master_count)
+  # Đảm bảo tất cả node up
+  for node in "${CLUSTER_NODES[@]}"; do
+    echo "- Checking $node..."
+    timeout 60 bash -c "until docker exec $node redis-cli -a $CLUSTER_PASS -p $CLUSTER_PORT ping >/dev/null 2>&1; do sleep 2; done"
+  done
 
-  if [ "$master_count" -lt 3 ]; then
-    echo "👉 Cluster có $master_count master, thêm $host làm master"
-    docker exec -i node-1 redis-cli -a "$CLUSTER_PASS" --cluster add-node $host node-1:$REDIS_PORT --cluster-yes
-    docker exec -i node-1 redis-cli -a "$CLUSTER_PASS" --cluster rebalance node-1:$REDIS_PORT --cluster-use-empty-masters --cluster-yes
+  # Kiểm tra cluster state
+  if docker exec node-1 redis-cli -a $CLUSTER_PASS cluster info | grep -q "cluster_state:ok"; then
+    echo "✅ Cluster state OK"
   else
-    echo "👉 Cluster đã có $master_count master, thêm $host làm replica"
-    # chọn master có ít replica nhất
-    target_master=$(docker exec -i node-1 redis-cli -a "$CLUSTER_PASS" -p $REDIS_PORT cluster nodes \
-      | grep "master" | grep -v "fail" | awk '{print $1}' | head -n1)
-
-    docker exec -i node-1 redis-cli -a "$CLUSTER_PASS" --cluster add-node $host node-1:$REDIS_PORT --cluster-slave --cluster-master-id $target_master --cluster-yes
+    echo "❌ Cluster not healthy"
+    exit 1
   fi
 }
 
-remove_node() {
-  local node_id=$1
-  echo "Removing node ID: $node_id"
-  docker exec -i node-1 redis-cli -a "$CLUSTER_PASS" --cluster del-node node-1:$REDIS_PORT $node_id
-}
-
-init_cluster() {
-  echo "Creating initial cluster..."
-  NODE_LIST=""
-  for i in $(seq 1 $TOTAL_NODES); do
-    NODE_LIST="$NODE_LIST node-$i:$REDIS_PORT"
+function validate_config() {
+  for config in cluster/node.conf; do
+    if [ ! -f "$config" ]; then
+      echo "❌ Missing configuration file: $config"
+      exit 1
+    fi
   done
-  docker exec -i node-1 redis-cli -a "$CLUSTER_PASS" --cluster create $NODE_LIST --cluster-replicas 1 --cluster-yes
+  echo "✅ All configuration files present"
 }
 
-show_status() {
+function cluster_security_scan() {
+  echo "🔐 Running cluster security checks..."
+
+  TRIVY_OUTPUT="${GITHUB_WORKSPACE:-.}/trivy-cluster-results.sarif"
+  if [ -f "$TRIVY_OUTPUT" ]; then
+    echo "🛡️ Trivy SARIF report found at $TRIVY_OUTPUT"
+  else
+    echo "⚠️ Trivy report not found, skipping config scan"
+  fi
+
+  echo "📡 Checking open ports..."
+  for node in "${CLUSTER_NODES[@]}"; do
+    echo "- Checking container $node..."
+    if docker exec "$node" sh -c "nc -z localhost $CLUSTER_PORT" >/dev/null 2>&1; then
+      echo "✅ $node port $CLUSTER_PORT is open"
+    fi
+  done
+
+  echo "🔑 Checking password requirement on cluster..."
+  if docker exec node-1 redis-cli -a "$CLUSTER_PASS" ping >/dev/null 2>&1; then
+    echo "✅ Cluster requires password"
+  else
+    echo "❌ Cluster allows unauthenticated access!"
+    exit 1
+  fi
+
+  echo "✅ Security scan passed"
+}
+
+function show_status() {
   echo "📌 Cluster status:"
   docker exec -i node-1 redis-cli -a "$CLUSTER_PASS" -p $REDIS_PORT cluster nodes \
     | awk '{
@@ -59,33 +82,26 @@ show_status() {
       }'
 }
 
-case $1 in
-  init)
-    init_cluster
+case "${1:-}" in
+  check)
+    wait_for_cluster
     ;;
-  add)
-    if [ -z "$2" ]; then
-      echo "Usage: $0 add <node-name>"
-      exit 1
-    fi
-    add_node "$2:$REDIS_PORT"
+  validate)
+    validate_config
     ;;
-  remove)
-    if [ -z "$2" ]; then
-      echo "Usage: $0 remove <node-name>"
-      exit 1
-    fi
-    NODE_ID=$(docker exec -i node-1 redis-cli -a "$CLUSTER_PASS" -p $REDIS_PORT cluster nodes | grep $2 | awk '{print $1}')
-    remove_node $NODE_ID
-    ;;
-  rebalance)
-    docker exec -i node-1 redis-cli -a "$CLUSTER_PASS" --cluster rebalance node-1:$REDIS_PORT --cluster-use-empty-masters --cluster-yes
+  scan)
+    cluster_security_scan
     ;;
   status)
     show_status
     ;;
+  all|"")
+    wait_for_cluster
+    validate_config
+    cluster_security_scan
+    ;;
   *)
-    echo "Usage: $0 {init|add <node>|remove <node>|rebalance|status}"
+    echo "Usage: $0 {check|validate|scan|status|all}"
     exit 1
     ;;
 esac

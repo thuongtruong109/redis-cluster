@@ -15,6 +15,9 @@ validate:
 	chmod +x scripts/ha.sh
 	bash scripts/ha.sh validate
 
+	chmod +x scripts/clt.sh
+	bash scripts/clt.sh validate
+
 commander:
 	@if [ -z "$$CONFIG_PATH" ]; then \
 		echo "❌ CONFIG_PATH is not set."; \
@@ -30,6 +33,9 @@ commander-clt:
 
 ha:
 	docker compose -f $(HA_COMPOSE_FILE) up -d --force-recreate
+
+ha-cli:
+	docker exec -it $$(docker ps -qf "name=master_1") redis-cli -p 6379 -a masterpass
 
 ha-check:
 	chmod +x scripts/ha.sh
@@ -82,41 +88,40 @@ ha-health:
 	chmod +x scripts/ha-health.sh
 	bash ./scripts/ha-health.sh --basic
 
-ha-cli:
-	docker exec -it $$(docker ps -qf "name=master_1") redis-cli -p 6379 -a masterpass
-
 clt:
 	docker compose -f $(CLT_COMPOSE_FILE) up -d --force-recreate node-1 node-2 node-3 node-4 node-5 node-6
 
+clt-cli:
+	docker exec -it $$(docker ps -qf "name=node-1") redis-cli -c -p 6379 -a redispw
+
 clt-init:
-	chmod +x scripts/clt.sh
-	CLUSTER_PASS="redispw" bash ./scripts/clt.sh init
+	chmod +x scripts/clt-scale.sh
+	CLUSTER_PASS="redispw" bash ./scripts/clt-scale.sh init
 
 clt-status:
+	docker exec -it node-1 redis-cli -a redispw cluster info
+	docker exec -it node-1 redis-cli -a redispw cluster nodes
 	chmod +x scripts/clt.sh
 	CLUSTER_PASS="redispw" bash ./scripts/clt.sh status
 
-clt-check:
-	@echo "Checking the cluster status..."
-	docker exec -it node-1 redis-cli -a redispw cluster info
-	docker exec -it node-1 redis-cli -a redispw cluster nodes
-	@echo "Run demo..."
-	docker exec -it node-1 redis-cli -a redispw -c set foo bar
-	docker exec -it node-2 redis-cli -a redispw -c get foo
+clt-scan:
+	chmod +x scripts/clt.sh
+	CLUSTER_PASS="redispw" bash scripts/clt.sh scan
 
 clt-test:
 	chmod +x tests/clt.sh
 	bash ./tests/clt.sh
 
-clt-cli:
-	docker exec -it $$(docker ps -qf "name=node-1") redis-cli -c -p 6379 -a redispw
+clt-rollback:
+	chmod +x scripts/clt-rollback.sh
+	CLUSTER_PASS="redispw" bash ./scripts/clt-rollback.sh
 
 clt-scale:
 	docker-compose -f $(CLT_COMPOSE_FILE) up -d node-7
-	chmod +x scripts/clt.sh
-	CLUSTER_PASS="redispw" bash ./scripts/clt.sh add node-7
-	CLUSTER_PASS="redispw" bash ./scripts/clt.sh remove node-6
-	CLUSTER_PASS="redispw" bash ./scripts/clt.sh rebalance
+	chmod +x scripts/clt-scale.sh
+	CLUSTER_PASS="redispw" bash ./scripts/clt-scale.sh add node-7
+	CLUSTER_PASS="redispw" bash ./scripts/clt-scale.sh remove node-6
+	CLUSTER_PASS="redispw" bash ./scripts/clt-scale.sh rebalance
 
 clt-health:
 	chmod +x scripts/clt-health.sh
