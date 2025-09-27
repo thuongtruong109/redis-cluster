@@ -37,9 +37,9 @@ ha:
 ha-cli:
 	docker exec -it $$(docker ps -qf "name=master_1") redis-cli -p 6379 -a masterpass
 
-ha-check:
+ha-ready:
 	chmod +x scripts/ha.sh
-	bash scripts/ha.sh check
+	bash scripts/ha.sh ready
 
 ha-scan:
 	chmod +x scripts/ha.sh
@@ -99,6 +99,10 @@ clt-init:
 	chmod +x scripts/clt-scale.sh
 	CLUSTER_PASS="redispw" bash ./scripts/clt-scale.sh init
 
+clt-ready:
+	chmod +x scripts/clt.sh
+	CLUSTER_PASS="redispw" bash ./scripts/clt.sh ready
+
 clt-monitor:
 	chmod +x scripts/clt.sh
 	CLUSTER_PASS="redispw" bash ./scripts/clt.sh status
@@ -155,3 +159,6 @@ clean:
 	docker compose -f $(HA_COMPOSE_FILE) down -v
 	docker compose -f $(DEV_COMPOSE_FILE) down -v
 	docker volume prune -f
+
+ci:
+	act -W .github/workflows/ci.yml --rm --pull=false --secret DOCKER_USERNAME= --secret DOCKER_PASSWORD=

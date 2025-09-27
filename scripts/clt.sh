@@ -131,7 +131,7 @@ function monitor_cluster() {
 }
 
 case "${1:-}" in
-  check)
+  ready)
     wait_for_cluster
     ;;
   validate)
@@ -153,7 +153,7 @@ case "${1:-}" in
     monitor_cluster
     ;;
   *)
-    echo "Usage: $0 {check|validate|scan|status|monitor|all}"
+    echo "Usage: $0 {ready|validate|scan|status|monitor|all}"
     exit 1
     ;;
 esac

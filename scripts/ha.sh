@@ -9,7 +9,7 @@ CONTAINERS=(redis-master slave_1 slave_2 slave_3 sentinel_1 sentinel_2 sentinel_
 REDIS_PORTS=(6379 6380 26379)
 
 function wait_for_replication() {
-  echo "⏳ Waiting for Redis replication to be ready..."
+  echo "⏳ Waiting for Redis Replication to be ready..."
   sleep 20
 
   timeout 60 bash -c "until docker exec $HA_MASTER_NAME redis-cli -a $HA_PASSWORD ping; do sleep 2; done"
@@ -67,7 +67,7 @@ function replication_security_scan() {
 }
 
 case "${1:-}" in
-  check)
+  ready)
     wait_for_replication
     ;;
   validate)
@@ -82,7 +82,7 @@ case "${1:-}" in
     replication_security_scan
     ;;
   *)
-    echo "Usage: $0 {check|validate|scan|all}"
+    echo "Usage: $0 {ready|validate|scan|all}"
     exit 1
     ;;
 esac

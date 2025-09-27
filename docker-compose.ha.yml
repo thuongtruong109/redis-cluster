@@ -22,7 +22,7 @@ services:
   redis-master:
     <<: *redis-common
     container_name: redis-master
-    image: thuongtruong1009/reluster-master
+    image: thuongtruong1009/reluster-replica
     volumes:
       - ./configs/ha/replica/master.conf:/etc/redis/redis.conf
     ports:
@@ -37,7 +37,7 @@ services:
       retries: 5
 
   slave_1:
-    image: thuongtruong1009/reluster-slave
+    image: thuongtruong1009/reluster-replica
     container_name: slave_1
     volumes:
       - ./configs/ha/replica/slave.conf:/etc/redis/redis.conf
@@ -50,7 +50,7 @@ services:
       - redis-master
 
   slave_2:
-    image: thuongtruong1009/reluster-slave
+    image: thuongtruong1009/reluster-replica
     container_name: slave_2
     volumes:
       - ./configs/ha/replica/slave.conf:/etc/redis/redis.conf
@@ -63,7 +63,7 @@ services:
       - redis-master
 
   slave_3:
-    image: thuongtruong1009/reluster-slave
+    image: thuongtruong1009/reluster-replica
     container_name: slave_3
     volumes:
       - ./configs/ha/replica/slave.conf:/etc/redis/redis.conf

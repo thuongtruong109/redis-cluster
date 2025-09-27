@@ -30,8 +30,10 @@
 
 ### 🧹 Chores
 
-- script: Scale cluster
-- script: Prepare run with bash
+- script: |
+  - Scale cluster
+  - Prepare run with bash
+  - check cluster memory usage, latency, slowlog
 - compose: Start commander container in dev
 - Integrate health checks for each node
 
@@ -55,6 +57,7 @@
 - simplify workflow name and restrict push branches to main
 - update script
 - add tests script
+- refactor and enhance workflow for replica/cluster tests, security scans, health checks, and notifications
 
 ### 🧪 Tests
 

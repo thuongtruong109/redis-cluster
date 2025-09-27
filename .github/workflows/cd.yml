@@ -39,21 +39,18 @@ jobs:
           docker compose -f docker-compose.cluster.yml build --progress=plain
 
           docker tag thuongtruong1009/${{ env.IMAGE_NAME }}:latest \
-            ${{ env.REGISTRY }}/${{ github.repository }}:latest
+            ${{ env.REGISTRY }}/${{ github.repository }}/cluster:latest
 
-          docker push ${{ env.REGISTRY }}/${{ github.repository }}:latest
+          docker push ${{ env.REGISTRY }}/${{ github.repository }}/cluster:latest
 
       - name: 🏗️ Build & Push HA Images
         run: |
           docker compose -f docker-compose.ha.yml build --progress=plain
 
-          docker tag thuongtruong1009/${{ env.IMAGE_NAME }}-master:latest \
-            ${{ env.REGISTRY }}/${{ github.repository }}-master:latest
-          docker tag thuongtruong1009/${{ env.IMAGE_NAME }}-slave:latest \
-            ${{ env.REGISTRY }}/${{ github.repository }}-slave:latest
+          docker tag thuongtruong1009/${{ env.IMAGE_NAME }}-replica:latest \
+            ${{ env.REGISTRY }}/${{ github.repository }}/ha-replica:latest
           docker tag thuongtruong1009/${{ env.IMAGE_NAME }}-sentinel:latest \
-            ${{ env.REGISTRY }}/${{ github.repository }}-sentinel:latest
+            ${{ env.REGISTRY }}/${{ github.repository }}/ha-sentinel:latest
 
-          docker push ${{ env.REGISTRY }}/${{ github.repository }}-master:latest
-          docker push ${{ env.REGISTRY }}/${{ github.repository }}-slave:latest
-          docker push ${{ env.REGISTRY }}/${{ github.repository }}-sentinel:latest
+          docker push ${{ env.REGISTRY }}/${{ github.repository }}/ha-replica:latest
+          docker push ${{ env.REGISTRY }}/${{ github.repository }}/ha-sentinel:latest
