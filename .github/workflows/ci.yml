@@ -5,6 +5,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch: {}
 
 jobs:
   lint-and-validate:
@@ -12,6 +13,15 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Lint YAML files
+        uses: ibiqlik/action-yamllint@v3
+        with:
+          config_file: .yamllint.yml
+          file_or_dir: |
+            docker-compose.ha.yml
+            docker-compose.cluster.yml
+            .github/workflows
 
       - name: Validate Compose and check config files
         run: make validate
@@ -45,7 +55,7 @@ jobs:
       - name: Check if Trivy SARIF exists
         id: check_trivy
         run: |
-          if [ -f trivy-results.sarif ]; then
+          if [ -f "${{ github.workspace }}/trivy-results.sarif" ]; then
             echo "exists=true" >> $GITHUB_OUTPUT
           else
             echo "exists=false" >> $GITHUB_OUTPUT
@@ -104,7 +114,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y redis-tools
 
-      - name: Start Redis Cluster
+      - name: Start Redis Replica
         run: make ha
 
       - name: Wait for services to be ready
@@ -149,7 +159,7 @@ jobs:
       - name: Check if Cluster Trivy SARIF exists
         id: check_trivy_cluster
         run: |
-          if [ -f trivy-cluster-results.sarif ]; then
+          if [ -f "${{ github.workspace }}/trivy-cluster-results.sarif" ]; then
             echo "exists=true" >> $GITHUB_OUTPUT
           else
             echo "exists=false" >> $GITHUB_OUTPUT
@@ -167,13 +177,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Restore retry count artifact if exists
-        uses: actions/download-artifact@v4
-        with:
-          name: retry-count
-          path: .
-
-      - name: Initialize retry count
+      - name: Init retry count
         run: |
           if [ ! -f .retry_count ]; then
             echo 0 > .retry_count
@@ -205,7 +209,7 @@ jobs:
         run: |
           MAX_RETRIES=3
           RETRY_COUNT_FILE=".retry_count"
-          RETRY_COUNT=$(cat "$RETRY_COUNT_FILE")
+          RETRY_COUNT=$(cat "$RETRY_COUNT_FILE" 2>/dev/null || echo 0)
 
           echo "🔄 Current retry count: $RETRY_COUNT"
 

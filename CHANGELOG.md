@@ -39,6 +39,7 @@
   - check cluster memory usage, latency, slowlog
 - compose: Start commander container in dev
 - Integrate health checks for each node
+- config yamllint to validate YAML files
 
 ### 📚 Documentation
 
