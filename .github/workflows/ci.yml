@@ -167,12 +167,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Restore retry count artifact
+      - name: Restore retry count artifact if exists
         uses: actions/download-artifact@v4
         with:
           name: retry-count
           path: .
-          fail-on-error: false
 
       - name: Initialize retry count
         run: |
