@@ -20,6 +20,9 @@
 - workflow: Change build context
 - workflow: Fix condition run
 - workflow: Build and publish image
+- safely upload Trivy SARIF skip if missing in security scan
+- refactor and enhance workflow for replica/cluster tests, security scans, health checks, and notifications
+- make cluster-health-check retry count safe if artifact missing
 
 ### 🧪 Tests
 
@@ -57,8 +60,7 @@
 - simplify workflow name and restrict push branches to main
 - update script
 - add tests script
-- refactor and enhance workflow for replica/cluster tests, security scans, health checks, and notifications
--
+- add integration test for failover
 
 ### 🧪 Tests
 
@@ -71,7 +73,6 @@
 - detect current master dynamically and retry replication checks (integration)
 - auto detect ttl mode (failover)
 - resolved hang on waiting promote master (integration)
-- safely upload Trivy SARIF skip if missing in security scan CI
 
 ### 🧹 Chores
 

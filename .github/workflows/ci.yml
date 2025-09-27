@@ -172,6 +172,13 @@ jobs:
         with:
           name: retry-count
           path: .
+          fail-on-error: false
+
+      - name: Initialize retry count
+        run: |
+          if [ ! -f .retry_count ]; then
+            echo 0 > .retry_count
+          fi
 
       - name: Start Redis Cluster
         run: |
@@ -199,7 +206,7 @@ jobs:
         run: |
           MAX_RETRIES=3
           RETRY_COUNT_FILE=".retry_count"
-          RETRY_COUNT=$(cat "$RETRY_COUNT_FILE" 2>/dev/null || echo 0)
+          RETRY_COUNT=$(cat "$RETRY_COUNT_FILE")
 
           echo "🔄 Current retry count: $RETRY_COUNT"
 
