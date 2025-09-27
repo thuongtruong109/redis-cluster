@@ -1,0 +1,10 @@
+.github
+.vscode
+.git
+backups
+examples
+playgrounds
+tests
+scripts
+\*.md
+LICENSE

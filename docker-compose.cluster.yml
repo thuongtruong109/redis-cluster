@@ -2,7 +2,7 @@ x-node-base: &node-base
   image: thuongtruong1009/reluster:latest
   build:
     context: .
-    dockerfile: Dockerfile
+    dockerfile: ./configs/cluster/Dockerfile
   networks:
     - redisnet
   environment:

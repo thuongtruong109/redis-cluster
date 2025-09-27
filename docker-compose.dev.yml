@@ -6,7 +6,7 @@ services:
     ports:
       - "8081:8081"
     volumes:
-      - ./commander/${CONFIG_PATH}:/redis-commander/config/local-production.json:ro
+      - ./configs/commander/${CONFIG_PATH}:/redis-commander/config/local-production.json:ro
     networks:
       - redisnet
 

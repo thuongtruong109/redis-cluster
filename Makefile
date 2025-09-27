@@ -6,7 +6,7 @@ DEV_COMPOSE_FILE = docker-compose.dev.yml
 
 format:
 	@dos2unix Makefile
-	@sed -i 's/\r$$//' Makefile ha/sentinel.conf ha/slave.conf ha/master.conf cluster/node.conf
+	@sed -i 's/\r$$//' Makefile configs/ha/sentinel/sentinel.conf configs/ha/replica/slave.conf configs/ha/replica/master.conf configs/cluster/node.conf
 
 validate:
 	docker compose -f $(HA_COMPOSE_FILE) config --quiet
@@ -100,8 +100,8 @@ clt-init:
 	CLUSTER_PASS="redispw" bash ./scripts/clt-scale.sh init
 
 clt-status:
-	docker exec -it node-1 redis-cli -a redispw cluster info
-	docker exec -it node-1 redis-cli -a redispw cluster nodes
+	docker exec node-1 redis-cli -a redispw cluster info
+	docker exec node-1 redis-cli -a redispw cluster nodes
 	chmod +x scripts/clt.sh
 	CLUSTER_PASS="redispw" bash ./scripts/clt.sh status
 

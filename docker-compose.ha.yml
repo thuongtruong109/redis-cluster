@@ -1,112 +1,112 @@
+x-redis-common: &redis-common
+  build:
+    context: .
+    dockerfile: ./configs/ha/replica/Dockerfile
+  restart: always
+  networks:
+    redisnet:
+      ipv4_address: 0.0.0.0
+
+x-sentinel-common: &sentinel-common
+  build:
+    context: .
+    dockerfile: ./configs/ha/sentinel/Dockerfile
+  restart: always
+  networks:
+    redisnet:
+      ipv4_address: 0.0.0.0
+  depends_on:
+    - redis-master
+
 services:
   redis-master:
-    image: redis:7.2
+    <<: *redis-common
     container_name: redis-master
-    command: ["redis-server", "/etc/redis/redis.conf"]
-    restart: always
-    healthcheck:
-      test: ["CMD", "redis-cli", "-a", "masterpass", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
+    image: thuongtruong1009/reluster-master
     volumes:
-      - ./ha/master.conf:/etc/redis/redis.conf
+      - ./configs/ha/replica/master.conf:/etc/redis/redis.conf
     ports:
       - "6379:6379"
     networks:
       redisnet:
         ipv4_address: 172.28.0.10
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "masterpass", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
   slave_1:
-    image: redis:7.2
+    image: thuongtruong1009/reluster-slave
     container_name: slave_1
-    command: ["redis-server", "/etc/redis/redis.conf"]
     volumes:
-      - ./ha/slave.conf:/etc/redis/redis.conf
-    depends_on:
-      - redis-master
+      - ./configs/ha/replica/slave.conf:/etc/redis/redis.conf
     ports:
       - "6380:6379"
     networks:
       redisnet:
         ipv4_address: 172.28.0.11
-
-  slave_2:
-    image: redis:7.2
-    container_name: slave_2
-    command: ["redis-server", "/etc/redis/redis.conf"]
-    volumes:
-      - ./ha/slave.conf:/etc/redis/redis.conf
     depends_on:
       - redis-master
+
+  slave_2:
+    image: thuongtruong1009/reluster-slave
+    container_name: slave_2
+    volumes:
+      - ./configs/ha/replica/slave.conf:/etc/redis/redis.conf
     ports:
       - "6381:6379"
     networks:
       redisnet:
         ipv4_address: 172.28.0.12
-
-  slave_3:
-    image: redis:7.2
-    container_name: slave_3
-    command: ["redis-server", "/etc/redis/redis.conf"]
-    volumes:
-      - ./ha/slave.conf:/etc/redis/redis.conf
     depends_on:
       - redis-master
+
+  slave_3:
+    image: thuongtruong1009/reluster-slave
+    container_name: slave_3
+    volumes:
+      - ./configs/ha/replica/slave.conf:/etc/redis/redis.conf
     ports:
       - "6382:6379"
     networks:
       redisnet:
         ipv4_address: 172.28.0.13
+    depends_on:
+      - redis-master
 
   sentinel_1:
-    image: redis:7.2
+    <<: *sentinel-common
     container_name: sentinel_1
-    command: ["redis-sentinel", "/etc/redis/sentinel.conf"]
-    volumes:
-      - ./ha/sentinel.conf:/etc/redis/sentinel.conf
+    image: thuongtruong1009/reluster-sentinel
     ports:
       - "26379:26379"
     networks:
       redisnet:
         ipv4_address: 172.28.0.20
-    restart: always
-    depends_on:
-      - redis-master
 
   sentinel_2:
-    image: redis:7.2
+    <<: *sentinel-common
     container_name: sentinel_2
-    command: ["redis-sentinel", "/etc/redis/sentinel.conf"]
-    volumes:
-      - ./ha/sentinel.conf:/etc/redis/sentinel.conf
+    image: thuongtruong1009/reluster-sentinel
     ports:
       - "26380:26379"
     networks:
       redisnet:
         ipv4_address: 172.28.0.21
-    restart: always
-    depends_on:
-      - redis-master
 
   sentinel_3:
-    image: redis:7.2
+    <<: *sentinel-common
     container_name: sentinel_3
-    command: ["redis-sentinel", "/etc/redis/sentinel.conf"]
-    volumes:
-      - ./ha/sentinel.conf:/etc/redis/sentinel.conf
+    image: thuongtruong1009/reluster-sentinel
     ports:
       - "26381:26379"
     networks:
       redisnet:
         ipv4_address: 172.28.0.22
-    restart: always
-    depends_on:
-      - redis-master
 
 networks:
   redisnet:
-    name: redisnet
     driver: bridge
     ipam:
       config:

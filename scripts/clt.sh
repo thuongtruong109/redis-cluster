@@ -29,7 +29,7 @@ function wait_for_cluster() {
 }
 
 function validate_config() {
-  for config in cluster/node.conf; do
+  for config in configs/cluster/node.conf; do
     if [ ! -f "$config" ]; then
       echo "❌ Missing configuration file: $config"
       exit 1

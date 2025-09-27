@@ -6,7 +6,6 @@
 - Dashboard to display cluster/sentinel status.
 - Script to automatically check logs and detect anomalies.
 - Script to check memory usage, latency, slowlog.
-
 - Connect the application to the cluster using a client that supports cluster mode.
 - Demo a real application using Redis Cluster (cache, pub/sub, message queue, session store, rate limiter.).
 - Use clients that support cluster/sentinel (ioredis, redis-py, Jedis, etc.).
