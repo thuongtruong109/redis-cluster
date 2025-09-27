@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-COMPOSE_FILE="docker-compose.ha.yml"
 MASTER_NAME="redis-master"
 SENTINEL_NAME="sentinel_1"
 
@@ -42,11 +41,11 @@ function benchmark_failover() {
   echo "⏳ Waiting for failover..."
   sleep 15
 
-  NEW_MASTER=$(docker exec $SENTINEL_NAME redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster | head -n1)
-  echo "✅ New master elected: $NEW_MASTER"
+  NEW_MASTER_IP=$(docker exec $SENTINEL_NAME redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster | sed -n '1p')
+  echo "✅ New master elected: $NEW_MASTER_IP"
 
   echo "🚀 Benchmark new master..."
-  redis-benchmark -h $NEW_MASTER -p 6379 -a $MASTER_PASS -t set -n 100000 -c 50 -q
+  redis-benchmark -h "$NEW_MASTER_IP" -p 6379 -a $MASTER_PASS -t set -n 100000 -c 50 -q
 
   wait $BENCH_PID || true
 }
