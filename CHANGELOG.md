@@ -58,6 +58,7 @@
 - update script
 - add tests script
 - refactor and enhance workflow for replica/cluster tests, security scans, health checks, and notifications
+-
 
 ### 🧪 Tests
 
@@ -70,6 +71,7 @@
 - detect current master dynamically and retry replication checks (integration)
 - auto detect ttl mode (failover)
 - resolved hang on waiting promote master (integration)
+- safely upload Trivy SARIF skip if missing in security scan CI
 
 ### 🧹 Chores
 

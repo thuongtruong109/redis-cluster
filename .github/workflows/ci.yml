@@ -42,13 +42,20 @@ jobs:
       - name: Run Replica security scan
         run: make ha-scan
 
-      - name: Upload Trivy scan results
+      - name: Check if Trivy SARIF exists
+        id: check_trivy
         run: |
           if [ -f trivy-results.sarif ]; then
-            gh actions upload-sarif trivy-results.sarif
+            echo "exists=true" >> $GITHUB_OUTPUT
           else
-            echo "No SARIF file to upload."
+            echo "exists=false" >> $GITHUB_OUTPUT
           fi
+
+      - name: Upload Trivy scan results
+        if: steps.check_trivy.outputs.exists == 'true'
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ github.workspace }}/trivy-results.sarif
 
   replica-integration-tests:
     runs-on: ubuntu-latest
@@ -139,13 +146,20 @@ jobs:
       - name: Run Cluster security scan
         run: make clt-scan
 
-      - name: Upload Cluster Trivy scan results
+      - name: Check if Cluster Trivy SARIF exists
+        id: check_trivy_cluster
         run: |
           if [ -f trivy-cluster-results.sarif ]; then
-            gh actions upload-sarif trivy-cluster-results.sarif
+            echo "exists=true" >> $GITHUB_OUTPUT
           else
-            echo "No SARIF file to upload."
+            echo "exists=false" >> $GITHUB_OUTPUT
           fi
+
+      - name: Upload Cluster Trivy scan results
+        if: steps.check_trivy_cluster.outputs.exists == 'true'
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ github.workspace }}/trivy-cluster-results.sarif
 
   cluster-health-check:
     runs-on: ubuntu-latest
@@ -154,7 +168,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Restore retry count artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: retry-count
           path: .
