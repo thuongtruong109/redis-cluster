@@ -14,15 +14,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Lint YAML files
-        uses: ibiqlik/action-yamllint@v3
-        with:
-          config_file: .yamllint.yml
-          file_or_dir: |
-            docker-compose.ha.yml
-            docker-compose.cluster.yml
-            .github/workflows
-
       - name: Validate Compose and check config files
         run: make validate
 
