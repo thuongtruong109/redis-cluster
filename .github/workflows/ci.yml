@@ -239,7 +239,7 @@ jobs:
       - name: Collect logs on failure
         if: failure()
         run: |
-          make clt-status
+          make clt-monitor
           docker compose -f docker-compose.cluster.yml logs
           docker compose -f docker-compose.cluster.yml ps
           docker network ls

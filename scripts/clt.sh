@@ -50,13 +50,12 @@ function cluster_security_scan() {
 
   echo "📡 Checking open ports..."
   for node in "${CLUSTER_NODES[@]}"; do
-    echo "- Checking container $node..."
     if docker exec "$node" sh -c "nc -z localhost $CLUSTER_PORT" >/dev/null 2>&1; then
       echo "✅ $node port $CLUSTER_PORT is open"
     fi
   done
 
-  echo "🔑 Checking password requirement on cluster..."
+  echo "🔑 Checking password requirement..."
   if docker exec node-1 redis-cli -a "$CLUSTER_PASS" ping >/dev/null 2>&1; then
     echo "✅ Cluster requires password"
   else
@@ -79,6 +78,58 @@ function show_status() {
       }'
 }
 
+function monitor_cluster() {
+    CLUSTER_STATE=$(docker exec node-1 redis-cli -a "$CLUSTER_PASS" -p $CLUSTER_PORT cluster info | grep cluster_state | cut -d: -f2)
+    if [ "$CLUSTER_STATE" != "ok" ]; then
+        echo "❌ Cluster state not OK: $CLUSTER_STATE"
+        exit 1
+    fi
+
+    echo "📌 Redis Cluster Advanced Monitoring"
+    echo "-----------------------------------"
+
+    echo "📄 Cluster Info:"
+    docker exec node-1 redis-cli -a "$CLUSTER_PASS" -p $CLUSTER_PORT cluster info
+    echo ""
+
+    echo "📄 Cluster Nodes:"
+    docker exec node-1 redis-cli -a "$CLUSTER_PASS" -p $CLUSTER_PORT cluster nodes
+    echo "-----------------------------------"
+
+    TOTAL_MEMORY=0
+    printf "%-12s %-8s %-12s %-12s %-10s %-15s\n" "NODE" "ROLE" "USED_MEM" "USED_BYTES" "LATENCY(ms)" "SLOWLOG_COUNT"
+
+    for NODE in "${CLUSTER_NODES[@]}"; do
+        ROLE_RAW=$(docker exec "$NODE" redis-cli -a "$CLUSTER_PASS" -p $CLUSTER_PORT INFO replication | grep 'role:' | cut -d: -f2 | tr -d '\r')
+        if [ "$ROLE_RAW" == "master" ]; then
+            ROLE="\e[32mMASTER\e[0m"
+        else
+            ROLE="\e[34mREPLICA\e[0m"
+        fi
+
+        USED_BYTES=$(docker exec "$NODE" redis-cli -a "$CLUSTER_PASS" -p $CLUSTER_PORT INFO memory | grep 'used_memory:' | head -n1 | cut -d: -f2)
+        USED_H=$(docker exec "$NODE" redis-cli -a "$CLUSTER_PASS" -p $CLUSTER_PORT INFO memory | grep 'used_memory_human:' | cut -d: -f2 | tr -d '\r')
+        TOTAL_MEMORY=$((TOTAL_MEMORY + USED_BYTES))
+
+        LATENCY=$(docker exec "$NODE" redis-cli -a "$CLUSTER_PASS" -p $CLUSTER_PORT --latency 0.5 -c -n 5 2>/dev/null | awk '/avg/ {print $2}')
+
+        SLOW_COUNT=$(docker exec "$NODE" redis-cli -a "$CLUSTER_PASS" -p $CLUSTER_PORT SLOWLOG LEN)
+
+        printf "%-12s %-8b %-12s %-12s %-10s %-15s\n" "$NODE" "$ROLE" "$USED_H" "$USED_BYTES" "$LATENCY" "$SLOW_COUNT"
+    done
+
+    echo "-----------------------------------"
+    echo "💾 Total used memory in cluster: $TOTAL_MEMORY bytes"
+    echo ""
+    echo "🔎 Top 10 slowlog entries per node (ID, Timestamp, Command):"
+    for NODE in "${CLUSTER_NODES[@]}"; do
+        echo "Node: $NODE"
+        docker exec "$NODE" redis-cli -a "$CLUSTER_PASS" -p $CLUSTER_PORT SLOWLOG GET 10 | \
+        awk 'NR % 3 == 1 {printf "ID: %s, Timestamp: ", $2} NR % 3 == 2 {print $0} NR % 3 == 0 {print "Command: "$0"\n"}'
+        echo ""
+    done
+}
+
 case "${1:-}" in
   check)
     wait_for_cluster
@@ -92,13 +143,17 @@ case "${1:-}" in
   status)
     show_status
     ;;
+  monitor)
+    monitor_cluster
+    ;;
   all|"")
     wait_for_cluster
     validate_config
     cluster_security_scan
+    monitor_cluster
     ;;
   *)
-    echo "Usage: $0 {check|validate|scan|status|all}"
+    echo "Usage: $0 {check|validate|scan|status|monitor|all}"
     exit 1
     ;;
 esac

@@ -99,11 +99,10 @@ clt-init:
 	chmod +x scripts/clt-scale.sh
 	CLUSTER_PASS="redispw" bash ./scripts/clt-scale.sh init
 
-clt-status:
-	docker exec node-1 redis-cli -a redispw cluster info
-	docker exec node-1 redis-cli -a redispw cluster nodes
+clt-monitor:
 	chmod +x scripts/clt.sh
 	CLUSTER_PASS="redispw" bash ./scripts/clt.sh status
+	CLUSTER_PASS="redispw" bash ./scripts/clt.sh monitor
 
 clt-scan:
 	chmod +x scripts/clt.sh
