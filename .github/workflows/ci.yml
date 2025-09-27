@@ -272,10 +272,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install redis-benchmark
+      - name: Install redis-benchmark and dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y redis-tools
+          sudo apt-get install -y redis-tools bc build-essential autoconf automake \
+            libpcre3-dev libevent-dev pkg-config zlib1g-dev git
+
+      - name: Install memtier_benchmark
+        run: |
+          git clone https://github.com/RedisLabs/memtier_benchmark.git
+          cd memtier_benchmark
+          autoreconf -ivf
+          ./configure
+          make
+          sudo make install
 
       - name: Start Redis Cluster
         run: |
@@ -287,6 +297,13 @@ jobs:
 
       - name: Run cluster performance benchmarks
         run: make clt-bench
+
+      - name: Upload benchmark results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cluster-bench-results
+          path: benchmark-results/*
 
       - name: Cleanup performance test
         if: always()

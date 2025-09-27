@@ -79,11 +79,9 @@ for host in slave_1 slave_2 slave_3; do
 done
 log "✅ Replication verified"
 
-# --- Simulate master failure ---
 log "Simulating master failure..."
 docker stop redis-master
 
-# --- Trigger manual failover ---
 log "Triggering manual failover..."
 docker exec sentinel_1 redis-cli -p 26379 sentinel failover mymaster || true
 
@@ -164,7 +162,6 @@ for host in slave_1 slave_2 slave_3; do
 done
 log "✅ Replication after failover verified"
 
-# --- Restart old master ---
 log "Restarting old master..."
 docker start redis-master
 

@@ -1,26 +1,70 @@
 ## 🛠️ To-Do
 
-- Automatically send CI/CD result reports via email or chat.
-- Integrate Prometheus + Grafana to monitor Redis.
-- Alert via Slack, Email, Telegram when a node is down/failover occurs.
-- Integrate centralized logging (ELK stack, Loki, etc.)
-- Exporter for Redis (redis_exporter).
-- Dashboard to display cluster/sentinel status.
-- Connect the application to the cluster using a client that supports cluster mode.
-- Demo a real application using Redis Cluster (cache, pub/sub, message queue, session store, rate limiter.).
-- Use clients that support cluster/sentinel (ioredis, redis-py, Jedis, etc.).
-- Write documentation for integrating Redis into popular frameworks.
-- Build middleware cache with Redis.
+## 🧪 Testing & CI/CD
 
-- Enable TLS for Redis.
-- Optimize maxmemory configuration and eviction policy.
-- Restrict IP access, firewall.
-- Integrate Redis with Kubernetes (Helm chart, StatefulSet, Operator).
-- Automate backup/restore of Redis data to cloud (S3, GCS).
-- Optimize Redis operating costs on cloud (AWS ElastiCache, Azure Cache for Redis).
-- Evaluate Redis as a Service solutions (Upstash, Redis Cloud, etc.)
+- [x] 🔄 Automatically rollback when errors are detected on node (v1.0.0)
+- [x] 📈 Add cluster benchmark test & replica benchmark (v1.0.0)
+- [x] 🧩 Add integration failover test suite (v1.0.0)
+- [x] 🔍 Detect current master dynamically in tests (v0.1.0)
+- [x] ⏱️ Auto detect TTL mode during failover (v0.1.0)
+- [x] 🔐 Write a script to check data consistency between nodes
+- [x] 📝 Script to check data consistency after failover
 
-## ✨ README
+## 📊 Monitoring & Logging
+
+- [x] ❤️ Cluster health check, retry persistence, rollback integration (v1.0.0)
+- [x] 🩺 Integrate health checks for each node (v1.0.0)
+- [x] 🕵️ Scripts: memory usage, latency, slowlog checks (v1.0.0)
+- [ ] 📜 Script to automatically check logs and detect anomalies
+- [ ] 📊 Integrate Prometheus + Grafana to monitor Redis
+- [ ] 🔔 Alert via Slack, Email, Telegram when a node is down/failover occurs
+- [ ] 📦 Exporter for Redis (redis_exporter)
+- [ ] 📺 Dashboard to display cluster/sentinel status
+- [ ] 📰 Integrate centralized logging (ELK stack, Loki, etc.)
+
+## 🔒 Security
+
+- [x] 🛡️ Integrate security scan (config, open ports, password check) (v1.0.0)
+- [ ] 🔑 Enable TLS for Redis
+- [ ] ⚙️ Optimize maxmemory configuration and eviction policy
+- [ ] 🚧 Restrict IP access, firewall
+- [ ] 👥 Redis ACL (Access Control List) with user/role
+- [ ] ♻️ Rotate secrets/passwords automatically (Vault, Secrets Manager)
+- [ ] 📝 Audit log to track access and config changes
+
+## 🧩 Application & Integration
+
+- [ ] 🔌 Connect the application to the cluster using a client that supports cluster mode
+- [ ] 🧪 Demo a real application using Redis Cluster (cache, pub/sub, queue)
+- [ ] 📚 Use clients that support cluster/sentinel (ioredis, redis-py, Jedis, etc.)
+- [ ] 🛠️ Write demo app for cache, pub/sub, queue
+- [ ] 📡 Integrate Redis as message queue, session store, rate limiter
+- [ ] 📝 Write documentation for integrating Redis into popular frameworks
+- [ ] 🔄 Demo automatic failover without service interruption
+- [ ] 🚀 Build middleware cache with Redis
+
+## ⚙️ Configuration & Performance
+
+- [x] ⚡ Enable cluster mode with replicas (v0.1.0)
+- [x] 💾 Backup/import RDB data scripts (v0.1.0)
+- [ ] 📊 Monitor `slowlog` & `commandstats` to measure latency
+- [x] 🧪 Benchmark & Load testing in CI target with threshold checks (memtier_benchmark, redis-benchmark)
+- [ ] 🔧 Demo persistence: compare AOF vs RDB snapshot
+
+## ☸️ Cloud Native & Deployment
+
+- [x] 🌐 Automatically scale out/in and re-balance nodes (v1.0.0)
+- [x] 🔨 Initial CI/CD workflows (build, test, integration, split CD stage) (v0.1.0)
+- [ ] ☸️ Integrate Redis with Kubernetes (Helm chart, StatefulSet, Operator)
+- [ ] ☁️ Automate backup/restore of Redis data to cloud (S3, GCS)
+- [ ] 💰 Optimize Redis operating costs on cloud (AWS ElastiCache, Azure Cache for Redis)
+- [ ] 🛠️ Automate deployment with Terraform, Ansible, etc.
+- [ ] 📊 Evaluate Redis as a Service solutions (Upstash, Redis Cloud, etc.)
+- [ ] 📈 Autoscaling Redis on K8s (horizontal scaling with sharding)
+- [ ] 🌀 Spot instances test (Redis + persistence to reduce cost)
+- [ ] ⏮️ PITR (point-in-time recovery) using AOF/streams
+
+## 📝 Documentation
 
 - 📷 Screenshots / Demo GIFs
   - Grafana Dashboard, Redis Commander, RedisInsight, `redis-cli cluster nodes` output, etc.

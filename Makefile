@@ -4,6 +4,10 @@ HA_COMPOSE_FILE = docker-compose.ha.yml
 CLT_COMPOSE_FILE = docker-compose.cluster.yml
 DEV_COMPOSE_FILE = docker-compose.dev.yml
 
+CLT_BENCH_DIR := benchmark-results
+CLT_BENCH_THROUGHPUT_THRESHOLD := 50000
+CLT_BENCH_READ_THRESHOLD := 50000
+
 format:
 	@dos2unix Makefile
 	@sed -i 's/\r$$//' Makefile configs/ha/sentinel/sentinel.conf configs/ha/replica/slave.conf configs/ha/replica/master.conf configs/cluster/node.conf
@@ -63,7 +67,6 @@ ha-test:
 ha-bench:
 	chmod +x tests/ha-bench.sh
 	MASTER_PASS="masterpass" bash tests/ha-bench.sh all
-	$(MAKE) clean
 
 ha-backup:
 	chmod +x scripts/ha-backup.sh
@@ -103,9 +106,19 @@ clt-test:
 
 # current only support on CI
 clt-bench:
+	mkdir -p $(CLT_BENCH_DIR)
 	chmod +x tests/clt-bench.sh
 	CLUSTER_PASS="redispw" bash tests/clt-bench.sh all
-	$(MAKE) clean
+
+	@OPS=$$(grep "SET" $(CLT_BENCH_DIR)/throughput.txt | awk '{print $$2}' | tr -d ' '); \
+	if [ -n "$$OPS" ] && [ $$(echo "$$OPS < $(CLT_BENCH_THROUGHPUT_THRESHOLD)" | bc -l) -eq 1 ]; then \
+	  echo "❌ Throughput regression: $$OPS ops/sec < $(CLT_BENCH_THROUGHPUT_THRESHOLD)"; exit 1; \
+	else echo "✅ Throughput OK: $$OPS ops/sec"; fi
+
+	@OPS=$$(grep "GET" $(CLT_BENCH_DIR)/read.txt | awk '{print $$2}' | tr -d ' '); \
+	if [ -n "$$OPS" ] && [ $$(echo "$$OPS < $(CLT_BENCH_READ_THRESHOLD)" | bc -l) -eq 1 ]; then \
+	  echo "❌ Read regression: $$OPS ops/sec < $(CLT_BENCH_READ_THRESHOLD)"; exit 1; \
+	else echo "✅ Read OK: $$OPS ops/sec"; fi
 
 clt-rollback:
 	chmod +x scripts/clt-rollback.sh
