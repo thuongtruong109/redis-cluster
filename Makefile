@@ -62,22 +62,7 @@ ha-test:
 # current only support on CI
 ha-bench:
 	chmod +x tests/ha-bench.sh
-	bash tests/ha-bench.sh all
-	$(MAKE) clean
-
-ha-bench-master:
-	chmod +x tests/ha-bench.sh
-	bash tests/ha-bench.sh master
-	$(MAKE) clean
-
-ha-bench-slave:
-	chmod +x tests/ha-bench.sh
-	bash tests/ha-bench.sh slave
-	$(MAKE) clean
-
-ha-bench-failover:
-	chmod +x tests/ha-bench.sh
-	bash tests/ha-bench.sh failover
+	MASTER_PASS="masterpass" bash tests/ha-bench.sh all
 	$(MAKE) clean
 
 ha-backup:
@@ -121,22 +106,6 @@ clt-bench:
 	chmod +x tests/clt-bench.sh
 	CLUSTER_PASS="redispw" bash tests/clt-bench.sh all
 	$(MAKE) clean
-
-clt-bench-throughput:
-	chmod +x tests/clt-bench.sh
-	CLUSTER_PASS="redispw" bash tests/clt-bench.sh throughput
-	$(MAKE) clean
-
-clt-bench-read:
-	chmod +x tests/clt-bench.sh
-	CLUSTER_PASS="redispw" bash tests/clt-bench.sh read
-	$(MAKE) clean
-
-clt-bench-rebalance:
-	chmod +x tests/clt-bench.sh
-	CLUSTER_PASS="redispw" bash tests/clt-bench.sh rebalance
-	$(MAKE) clean
-
 
 clt-rollback:
 	chmod +x scripts/clt-rollback.sh

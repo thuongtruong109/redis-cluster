@@ -4,15 +4,14 @@ set -euo pipefail
 COMPOSE_FILE="docker-compose.ha.yml"
 MASTER_NAME="redis-master"
 SENTINEL_NAME="sentinel_1"
-PASSWORD="masterpass"
 
 function wait_for_replication() {
   echo "⏳ Waiting for Redis replication to be ready..."
   sleep 20
-  docker exec $MASTER_NAME redis-cli -a $PASSWORD PING
+  docker exec $MASTER_NAME redis-cli -a $MASTER_PASS PING
 
   for i in 1 2 3; do
-    docker exec slave_$i redis-cli -a $PASSWORD PING
+    docker exec slave_$i redis-cli -a $MASTER_PASS PING
   done
 
   for i in 1 2 3; do
@@ -23,17 +22,17 @@ function wait_for_replication() {
 
 function benchmark_master() {
   echo "🚀 Benchmark master (write)..."
-  redis-benchmark -h 127.0.0.1 -p 6379 -a $PASSWORD -t set -n 100000 -c 50 -q
+  redis-benchmark -h 127.0.0.1 -p 6379 -a $MASTER_PASS -t set -n 100000 -c 50 -q
 }
 
 function benchmark_slave() {
   echo "📖 Benchmark slave_1 (read)..."
-  redis-benchmark -h 127.0.0.1 -p 6380 -a $PASSWORD -t get -n 100000 -c 50 -q
+  redis-benchmark -h 127.0.0.1 -p 6380 -a $MASTER_PASS -t get -n 100000 -c 50 -q
 }
 
 function benchmark_failover() {
   echo "🔥 Running failover benchmark..."
-  redis-benchmark -h 127.0.0.1 -p 6379 -a $PASSWORD -t set -n 1000000 -c 50 -q &
+  redis-benchmark -h 127.0.0.1 -p 6379 -a $MASTER_PASS -t set -n 1000000 -c 50 -q &
   BENCH_PID=$!
 
   sleep 5
@@ -47,7 +46,7 @@ function benchmark_failover() {
   echo "✅ New master elected: $NEW_MASTER"
 
   echo "🚀 Benchmark new master..."
-  redis-benchmark -h $NEW_MASTER -p 6379 -a $PASSWORD -t set -n 100000 -c 50 -q
+  redis-benchmark -h $NEW_MASTER -p 6379 -a $MASTER_PASS -t set -n 100000 -c 50 -q
 
   wait $BENCH_PID || true
 }

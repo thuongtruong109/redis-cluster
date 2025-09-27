@@ -1,39 +1,45 @@
 ### Development Setup
 
 1. Fork the repository
-2. Clone your fork: `git clone https://github.com/thuongtruong109/redis-cluster.git`
+2. Clone your fork:
+   ```bash
+   git clone https://github.com/thuongtruong109/reluster.git
+   ```
 3. Make changes
-4. Run tests: `make ha-test`
+4. Run tests:
+   ```bash
+   make ha-test
+   ```
 5. Submit a pull request
 
 ## 📁 Project Structure
 
 ```
 reluster/
-├── docker-compose.ha.yml         # Sentinel/HA setup (master, slaves, sentinels, commander)
+├── docker-compose.ha.yml         # Sentinel/HA setup (master, replicas, sentinels, commander)
 ├── docker-compose.cluster.yml    # Redis Cluster (6 nodes + RedisInsight)
 ├── Makefile                      # Automation commands
-├── README.md                     # This file
+├── README.md                     # Main documentation
 ├── LICENSE                       # Apache 2.0 License
-├── todo.md                       # Future enhancements roadmap
-├── backups/                      # Backup storage directory
-│   ├── dump.rdb                  # Current backup
-│   └── dump_YYYY-MM-DD_HH-MM-SS.rdb  # Timestamped backups
+├── todo.md                       # Roadmap / Future enhancements
+├── backups/                      # Backup storage
+│   ├── dump.rdb
+│   └── dump_YYYY-MM-DD_HH-MM-SS.rdb
 ├── commander/
-│   └── ha.json                   # Redis Commander configuration
+│   └── ha.json                   # Redis Commander config
 ├── ha/
-│   ├── master.conf               # Master Redis configuration
-│   ├── sentinel.conf             # Sentinel configuration
-│   └── slave.conf                # Slave Redis configuration
+│   ├── master.conf               # Master Redis config
+│   ├── sentinel.conf             # Sentinel config
+│   └── slave.conf                # Replica Redis config
 ├── cluster/
-│   └── node.conf                 # Cluster node configuration
+│   └── node.conf                 # Cluster node config
 ├── scripts/
-│   ├── ha-backup.sh              # Backup and restore script
+│   ├── ha-backup.sh              # Backup & restore script
 │   └── ha-health.sh              # Health check script
 └── tests/
-   ├── ha-failover.sh            # Failover test script
-   ├── ha.sh                     # Integration test script
-   └── clt.sh                    # Cluster test script
+    ├── ha-failover.sh            # Sentinel failover test
+    ├── ha.sh                     # HA integration test
+    └── clt.sh                    # Cluster test
 ```
 
 ## ⚡ Quick Start
@@ -45,7 +51,7 @@ reluster/
 docker-compose -f docker-compose.ha.yml up -d
 ```
 
-### 2️⃣ Cluster Mode (sharding, failover)
+### 2️⃣ Cluster Mode (Sharding + Replication)
 
 ```bash
 # Start 6 Redis nodes + RedisInsight
