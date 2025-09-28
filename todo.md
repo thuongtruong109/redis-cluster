@@ -20,11 +20,11 @@
 - [ ] 🔔 Alert via Slack, Email, Telegram when a node is down/failover occurs
 - [ ] 📦 Exporter for Redis (redis_exporter)
 - [ ] 📺 Dashboard to display cluster/sentinel status
-- [ ] 📰 Integrate centralized logging (ELK stack, Loki, etc.)
+- [ ] 📰 Integrate centralized logging (ELK stack, Loki, Promtail etc.)
 
 ## 🔒 Security
 
-- [x] 🛡️ Integrate security scan (config, open ports, password check) (v1.0.0)
+- [x] 🛡️ Integrate security scan (config, open ports, password check)
 - [ ] 🔑 Enable TLS for Redis
 - [ ] ⚙️ Optimize maxmemory configuration and eviction policy
 - [ ] 🚧 Restrict IP access, firewall
@@ -63,6 +63,7 @@
 - [ ] 📈 Autoscaling Redis on K8s (horizontal scaling with sharding)
 - [ ] 🌀 Spot instances test (Redis + persistence to reduce cost)
 - [ ] ⏮️ PITR (point-in-time recovery) using AOF/streams
+- [ ] 🔄 Blue/Green deployment with HAProxy/nginx for zero-downtime updates
 
 ## 📝 Documentation
 

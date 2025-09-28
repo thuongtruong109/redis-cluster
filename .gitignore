@@ -11,5 +11,4 @@ dist/
 *.old
 
 playground
-examples
 .rollback-state.json

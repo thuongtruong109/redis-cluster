@@ -1,14 +1,11 @@
-.PHONY: format commander commander-ha commander-clt ha ha-master ha-slave ha-test-failover ha-test ha-health ha-cli clt clt-create clt-check clt-demo clt-cli clt-test
+.PHONY: format validate commander commander-ha commander-clt ha ha-cli ha-ready ha-scan ha-master ha-slave ha-test-failover ha-test ha-bench ha-backup ha-health clt clt-cli clt-init clt-ready clt-monitor clt-scan clt-test clt-bench clt-rollback clt-scale clt-health clean ci
 
 HA_COMPOSE_FILE = docker-compose.ha.yml
 CLT_COMPOSE_FILE = docker-compose.cluster.yml
 DEV_COMPOSE_FILE = docker-compose.dev.yml
 
 CLT_BENCH_DIR := benchmark-results
-# CLT_BENCH_THROUGHPUT_THRESHOLD := 50000
-# CLT_BENCH_READ_THRESHOLD := 50000
 # CLUSTER_PASS ?= redispw
-# CLT_BENCH_DIR ?= benchmark-results
 
 format:
 	@dos2unix Makefile
@@ -110,7 +107,13 @@ clt-test:
 clt-bench:
 	mkdir -p $(CLT_BENCH_DIR)
 	chmod +x tests/clt-bench.sh
-	CLUSTER_PASS="redispw" RESULT_DIR=$(CLT_BENCH_DIR) bash tests/clt-bench.sh
+# 	CLUSTER_PASS="redispw" RESULT_DIR=$(CLT_BENCH_DIR) bash tests/clt-bench.sh
+
+	docker run --rm \
+		--network redisnet \
+		-v $(PWD)/$(RESULT_DIR):/benchmark-results \
+		-v $(PWD)/clt-bench.sh:/clt-bench.sh \
+		redis:7 bash /clt-bench.sh
 
 clt-rollback:
 	chmod +x scripts/clt-rollback.sh

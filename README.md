@@ -24,12 +24,23 @@ This project provides a **hands-on Redis lab** that covers both **Sentinel** and
 
 ## ✨ Features
 
-- [x] Quick Bootstrap – Start Sentinel & Cluster in seconds with Docker Compose
-- [x] Automation Scripts – Health checks, failover tests, backups, slot rebalancing
-- [x] Monitoring Stack – RedisInsight, Redis Commander, Prometheus, Grafana, Alerts (Slack/Email/Telegram)
-- [x] CI/CD Ready – GitHub Actions/GitLab CI for automated testing & deployment
-- [x] Real-World Demos – Integration with Node.js, Python, Java, Go, etc. (caching, pub/sub, queues, sessions)
-- [x] Advanced Guides – Kubernetes (Helm, StatefulSet, Operator), Cloud Backup/Restore, TLS/Security
+- ✔ Quick Bootstrap – Start Sentinel & Cluster in seconds with Docker Compose
+- ✔ Automation Scripts – Health checks, failover tests, backups, slot rebalancing
+- ✔ CI/CD Ready – GitHub Actions/GitLab CI for automated testing & deployment
+- ✔ Configurable – Easily adjust number of nodes, replicas, memory limits, persistence
+- ✔ Comprehensive Docs – Setup guides, architecture explanations, usage examples
+- ✔ Realistic Workloads – Simulate traffic with redis-benchmark and custom scripts
+- ✔ Data Persistence – RDB/AOF configurations for durability testing
+- ✔ Backup & Restore – Automated backup scripts and restore procedures
+- ✔ Failover Testing – Simulate node failures and observe automatic recovery
+- ✔ Scaling – Add/remove nodes and reshard data with minimal downtime
+
+<!-- - ✔ Security – Basic auth, TLS setup examples -->
+<!-- - ✔ Multi-Platform – Works on Linux, macOS, Windows (WSL2/Docker Desktop) -->
+<!-- - ✔ Web UIs – Redis Commander, RedisInsight for easy data management & monitoring -->
+<!-- - ✔ Monitoring Stack – RedisInsight, Redis Commander, Prometheus, Grafana, Alerts (Slack/Email/Telegram)
+- ✔ Real-World Demos – Integration with Node.js, Python, Java, Go, etc. (caching, pub/sub, queues, sessions)
+- ✔ Advanced Guides – Kubernetes (Helm, StatefulSet, Operator), Cloud Backup/Restore, TLS/Security -->
 
 ## 👤 Who Is This For?
 
@@ -69,14 +80,9 @@ flowchart LR
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guidelines](.github/CONTRIBUTING.md) for details.
+We welcome you to contribute and help improve Reluster 💚
 
-💡 Fork → Hack → Test → PR.
-Bug reports & feature requests welcome in [Issues](https://github.com/thuongtruong109/reluster/issues).
-
-We invite you to contribute and help improve Reluster 💚
-
-Here are a few ways you can get involved:
+Fork → Hack → Test → PR. Here are a few ways you can get involved:
 
 - **🐛 Reporting Bugs:** If you come across any bugs or issues, please check out the [reporting bugs guide](https://github.com/thuongtruong109/reluster/issues) to learn how to submit a bug report.
 - **✨ Suggestions:** Have ideas to enhance features? We'd love to hear them! Check out the [contribution guide](.github/CONTRIBUTING.md) to share your suggestions.
