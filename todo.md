@@ -21,6 +21,8 @@
 - [ ] 📦 Exporter for Redis (redis_exporter)
 - [ ] 📺 Dashboard to display cluster/sentinel status
 - [ ] 📰 Integrate centralized logging (ELK stack, Loki, Promtail etc.)
+- [ ] 🔥 Automated Chaos Engineering workflows to automatically inject failures (kill node, network partition, disk full, etc.) to test cluster/sentinel self-healing (LitmusChaos, Gremlin, or shell script).
+- [ ] 🛠️ Self-Healing Workflow when errors are detected (healthcheck fail, node down), automatically run recovery scripts, send alerts, or rollback.
 
 ## 🔒 Security
 
@@ -64,6 +66,9 @@
 - [ ] 🌀 Spot instances test (Redis + persistence to reduce cost)
 - [ ] ⏮️ PITR (point-in-time recovery) using AOF/streams
 - [ ] 🔄 Blue/Green deployment with HAProxy/nginx for zero-downtime updates
+- [ ] 🔄 Integrate ArgoCD or Flux to automatically synchronize system state from Git to the actual environment (Kubernetes, Docker Swarm).
+- [ ] 🚀 Automatically Environment Preview per PR create a separate Redis cluster/sentinel environment (using Docker Compose or ephemeral VM/container), and delete it when the PR is closed.
+- [ ] 🕵️ Infrastructure Drift Detection: Integrate Driftctl or Terrascan to detect differences between configuration in Git and the actual state (cloud/K8s).
 
 ## 📝 Documentation
 
@@ -98,3 +103,5 @@
 - 🛡️ Maintenance & Support Policy
   - Maintenance period, support scope, how to file issues, PR workflow.
   - Issue templates & contributing guidelines (highlight what already exists).
+- [ ] 📚 Automatically generate architecture, config, and API documentation from source code and config files (Documize, MkDocs, Swagger).
+- [ ] 🗺️ Integrate tools to automatically visualize dependencies between services, scripts, and workflows in the repo (Graphviz, Mermaid, GitHub Dependency Graph).

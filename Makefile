@@ -140,5 +140,6 @@ clean:
 	docker volume prune -f
 	rm -rf $(RESULT_DIR)
 
+# 	Flags: -j <job_name>
 ci:
 	act -W .github/workflows/ci.yml --rm --pull=false --secret DOCKER_USERNAME= --secret DOCKER_PASSWORD=

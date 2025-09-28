@@ -12,6 +12,61 @@
    ```
 5. Submit a pull request
 
+## 📈 Dependency Graph
+
+```mermaid
+graph LR
+    subgraph Replica_HA_Sentinel
+        commander[commander]
+        ha[ha]
+        ha-master[ha-master]
+        ha-slave[ha-slave]
+        ha-test-failover[ha-test-failover]
+        ha-bench[ha-bench]
+        ha-backup[ha-backup]
+        ha-health[ha-health]
+        ha-ready[ha-ready]
+        ha-scan[ha-scan]
+        ha-cli[ha-cli]
+    end
+
+    subgraph Cluster_Sharding
+        clt[clt]
+        clt-init[clt-init]
+        clt-ready[clt-ready]
+        clt-monitor[clt-monitor]
+        clt-scan[clt-scan]
+        clt-test[clt-test]
+        clt-bench[clt-bench]
+        clt-rollback[clt-rollback]
+        clt-scale[clt-scale]
+        clt-health[clt-health]
+        clt-cli[clt-cli]
+    end
+
+    %% Example dependencies (bạn có thể bổ sung thêm nếu muốn)
+    ha --> ha-master
+    ha --> ha-slave
+    ha --> ha-test-failover
+    ha --> ha-bench
+    ha --> ha-backup
+    ha --> ha-health
+    ha --> ha-ready
+    ha --> ha-scan
+    ha --> ha-cli
+
+    clt --> clt-init
+    clt-init --> clt-ready
+    clt-ready --> clt-monitor
+    clt-ready --> clt-scan
+    clt-ready --> clt-test
+    clt-ready --> clt-bench
+    clt-ready --> clt-rollback
+    clt-ready --> clt-scale
+    clt-ready --> clt-health
+    clt-ready --> clt-cli
+```
+
 ## 📁 Project Structure
 
 ```

@@ -1,11 +1,12 @@
 <div align="center">
   <p>
     <img src="https://img.shields.io/github/actions/workflow/status/thuongtruong109/redis-cluster/ci.yml?label=CI&logo=github" alt="CI Status" height="28"/>
-    <img src="https://img.shields.io/badge/Docker-Compose-brightgreen?logo=docker&logoColor=white" alt="Docker Compose" height="28"/>
+    <!-- <img src="https://img.shields.io/badge/Docker-Compose-brightgreen?logo=docker&logoColor=white" alt="Docker Compose" height="28"/> -->
+    <a href="https://hub.docker.com/r/thuongtruong1009/reluster" alt="Pull count"> <img src="https://img.shields.io/docker/pulls/thuongtruong1009/reluster?label=Image%20pull&logo=docker&logoColor=white&color=brightgreen" alt="Pull count" height="28"/> </a>
     <img src="https://img.shields.io/badge/Cluster-Sharding-brightgreen?logo=redis&logoColor=white" alt="Redis" height="28"/>
     <img src="https://img.shields.io/badge/Sentinel-HA-brightgreen?logo=redis&logoColor=white" alt="Sentinel" height="28"/>
     <img src="https://img.shields.io/badge/Commander-UI-brightgreen?logo=redis&logoColor=white" alt="Commander" height="28"/>
-   <img src="https://img.shields.io/badge/License-Apache%202.0-brightgreen?logo=apache&logoColor=white" alt="License" height="28"/>
+    <a href="https://opensource.org/licenses/Apache-2.0" alt="License"><img src="https://img.shields.io/badge/License-Apache%202.0-brightgreen?logo=apache&logoColor=white" alt="License" height="28"/></a>
   </p>
 
    <img src="./.github/assets/banner.webp" alt="Redis Cluster Banner" />

@@ -95,6 +95,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run TruffleHog
-        uses: trufflesecurity/trufflehog@v3.63.3
+        uses: trufflesecurity/trufflehog@v3.90.8
         with:
-          scanArguments: --json --fail
+          directory: .
+          json: true
+          redact: true
+      - name: Upload TruffleHog results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trufflehog-results
+          path: trufflehog-results.json

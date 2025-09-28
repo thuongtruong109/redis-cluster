@@ -272,6 +272,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup Docker
+        uses: docker/setup-docker@v4
+
       - name: Install redis-benchmark and dependencies
         run: |
           sudo apt-get update
