@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "davidsekar.redis-xplorer",
+    "vitorsalgado.vscode-redis",
+    "kdcro101.vscode-redis",
+    "ms-azuretools.vscode-docker",
+    "ms-vscode-remote.remote-containers",
+    "redhat.vscode-yaml"
+  ]
+}
