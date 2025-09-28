@@ -9,6 +9,7 @@ dist/
 *.swo
 *.bak
 *.old
+*.txt
 
 playground
 .rollback-state.json

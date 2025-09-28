@@ -1,0 +1,13 @@
+version: "3.9"
+
+services:
+  app:
+    image: mcr.microsoft.com/vscode/devcontainers/base:ubuntu
+    container_name: dev-app-cluster
+    working_dir: /workspace
+    volumes:
+      - ..:/workspace:cached
+    networks:
+      - redisnet
+    depends_on:
+      - node-1

@@ -105,17 +105,8 @@ clt-test:
 
 # current only support on CI
 clt-bench:
-	mkdir -p $(CLT_BENCH_DIR)
 	chmod +x tests/clt-bench.sh
-# 	CLUSTER_PASS="redispw" RESULT_DIR=$(CLT_BENCH_DIR) bash tests/clt-bench.sh
-
-	docker run --rm \
-		--network redisnet \
-		-e CLUSTER_PASS=redispw \
-		-e RESULT_DIR=/benchmark-results \
-		-v $(PWD)/$(RESULT_DIR):/benchmark-results \
-		-v $(PWD)/tests/clt-bench.sh:/clt-bench.sh \
-		redis:7.2 bash /clt-bench.sh
+	CLUSTER_PASS="redispw" RESULT_DIR=$(CLT_BENCH_DIR) bash ./tests/clt-bench.sh
 
 clt-rollback:
 	chmod +x scripts/clt-rollback.sh

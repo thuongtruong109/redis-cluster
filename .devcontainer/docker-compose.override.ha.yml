@@ -1,0 +1,14 @@
+version: "3.9"
+
+services:
+  app:
+    image: mcr.microsoft.com/vscode/devcontainers/base:ubuntu
+    container_name: dev-app-ha
+    working_dir: /workspace
+    volumes:
+      - ..:/workspace:cached
+    networks:
+      - redisnet
+    depends_on:
+      - redis-master
+      - sentinel_1

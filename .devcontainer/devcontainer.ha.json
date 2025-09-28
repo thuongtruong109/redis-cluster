@@ -1,0 +1,13 @@
+{
+  "name": "Redis HA Dev",
+  "dockerComposeFile": [
+    "../docker-compose.ha.yml",
+    "docker-compose.override.ha.yml"
+  ],
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "extensions": ["ms-azuretools.vscode-docker", "redhat.vscode-yaml"],
+  "forwardPorts": [6379, 6380, 6381, 26379, 26380, 26381],
+  "postCreateCommand": "docker ps",
+  "remoteUser": "vscode"
+}

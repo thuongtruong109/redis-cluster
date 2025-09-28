@@ -272,8 +272,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Docker
-        uses: docker/setup-docker@v4
+      - name: Verify Docker
+        run: |
+          which docker
+          docker --version
+          docker info
 
       - name: Install redis-benchmark and dependencies
         run: |
