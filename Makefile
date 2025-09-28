@@ -104,6 +104,7 @@ clt-test:
 	bash ./tests/clt.sh
 
 # current only support on CI
+# Flags: LOCAL_MODE="true" for local test
 clt-bench:
 	chmod +x tests/clt-bench.sh
 	CLUSTER_PASS="redispw" RESULT_DIR=$(CLT_BENCH_DIR) bash ./tests/clt-bench.sh

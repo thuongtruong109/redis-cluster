@@ -41,6 +41,7 @@
 - compose: Start commander container in dev
 - Integrate health checks for each node
 - config yamllint to validate YAML files
+- setup devcontainer in VSCode dev environment
 
 ### 📚 Documentation
 
