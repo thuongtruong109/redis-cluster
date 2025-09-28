@@ -5,8 +5,8 @@ CLT_COMPOSE_FILE = docker-compose.cluster.yml
 DEV_COMPOSE_FILE = docker-compose.dev.yml
 
 CLT_BENCH_DIR = benchmark-results
-CLUSTER_PASS = redispw
-# CLUSTER_PASS=${REDIS_PASSWORD}
+# CLUSTER_PASS = redispw
+CLUSTER_PASS=${REDIS_PASSWORD}
 CLUSTER_INIT_NODES = 6
 CLUSTER_TOTAL_NODES = 7
 
