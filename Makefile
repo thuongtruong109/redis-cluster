@@ -111,9 +111,11 @@ clt-bench:
 
 	docker run --rm \
 		--network redisnet \
+		-e CLUSTER_PASS=redispw \
+		-e RESULT_DIR=/benchmark-results \
 		-v $(PWD)/$(RESULT_DIR):/benchmark-results \
-		-v $(PWD)/clt-bench.sh:/clt-bench.sh \
-		redis:7 bash /clt-bench.sh
+		-v $(PWD)/tests/clt-bench.sh:/clt-bench.sh \
+		redis:7.2 bash /clt-bench.sh
 
 clt-rollback:
 	chmod +x scripts/clt-rollback.sh
@@ -136,6 +138,7 @@ clean:
 	docker compose -f $(HA_COMPOSE_FILE) down -v
 	docker compose -f $(DEV_COMPOSE_FILE) down -v
 	docker volume prune -f
+	rm -rf $(RESULT_DIR)
 
 ci:
 	act -W .github/workflows/ci.yml --rm --pull=false --secret DOCKER_USERNAME= --secret DOCKER_PASSWORD=
