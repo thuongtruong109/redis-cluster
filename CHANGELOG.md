@@ -1,6 +1,6 @@
 # 📝 Changelog
 
-## [v1.0.0 (2025-09-27)](https://github.com/thuongtruong109/redis-cluster/releases/tag/v1.0.0)
+## [v1.0.0 (2025-09-29)](https://github.com/thuongtruong109/redis-cluster/releases/tag/v1.0.0)
 
 ### ✨ Features
 
@@ -42,6 +42,7 @@
 - Integrate health checks for each node
 - config yamllint to validate YAML files
 - setup devcontainer in VSCode dev environment
+- using .env file for environment variables
 
 ### 📚 Documentation
 

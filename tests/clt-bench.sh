@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-NODE_HOSTS="127.0.0.1:7001,127.0.0.1:7002,127.0.0.1:7003"
+NODE_HOSTS="node-1:6379,node-2:6379,node-3:6379"
 
 mkdir -p "$RESULT_DIR"
 

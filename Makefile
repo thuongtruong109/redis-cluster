@@ -4,8 +4,11 @@ HA_COMPOSE_FILE = docker-compose.ha.yml
 CLT_COMPOSE_FILE = docker-compose.cluster.yml
 DEV_COMPOSE_FILE = docker-compose.dev.yml
 
-CLT_BENCH_DIR := benchmark-results
-# CLUSTER_PASS ?= redispw
+CLT_BENCH_DIR = benchmark-results
+CLUSTER_PASS = redispw
+# CLUSTER_PASS=${REDIS_PASSWORD}
+CLUSTER_INIT_NODES = 6
+CLUSTER_TOTAL_NODES = 7
 
 format:
 	@dos2unix Makefile
@@ -35,6 +38,7 @@ commander-clt:
 	@$(MAKE) commander CONFIG_PATH=cluster.json
 
 ha:
+	@$(MAKE) env
 	docker compose -f $(HA_COMPOSE_FILE) up -d --force-recreate
 
 ha-cli:
@@ -76,49 +80,50 @@ ha-health:
 	chmod +x scripts/ha-health.sh
 	bash ./scripts/ha-health.sh --basic
 
+# - name: Set cluster announce ip for CI
+#   run: echo "REDIS_HOST=node-1" >> $GITHUB_ENV
 clt:
-	docker compose -f $(CLT_COMPOSE_FILE) up -d --force-recreate node-1 node-2 node-3 node-4 node-5 node-6
+	docker compose -f $(CLT_COMPOSE_FILE) up -d --build --force-recreate node-1 node-2 node-3 node-4 node-5 node-6
 
 clt-cli:
-	docker exec -it $$(docker ps -qf "name=node-1") redis-cli -c -p 6379 -a redispw
+	docker exec -it $$(docker ps -qf "name=node-1") redis-cli -c -p 6379 -a $(CLUSTER_PASS)
 
 clt-init:
 	chmod +x scripts/clt-scale.sh
-	CLUSTER_PASS="redispw" bash ./scripts/clt-scale.sh init
+	CLUSTER_PASS=$(CLUSTER_PASS) bash ./scripts/clt-scale.sh init
 
 clt-ready:
 	chmod +x scripts/clt.sh
-	CLUSTER_PASS="redispw" bash ./scripts/clt.sh ready
+	CLUSTER_PASS=$(CLUSTER_PASS) bash ./scripts/clt.sh ready
 
 clt-monitor:
 	chmod +x scripts/clt.sh
-	CLUSTER_PASS="redispw" bash ./scripts/clt.sh status
-	CLUSTER_PASS="redispw" bash ./scripts/clt.sh monitor
+	CLUSTER_PASS=$(CLUSTER_PASS) bash ./scripts/clt.sh status
+	CLUSTER_PASS=$(CLUSTER_PASS) bash ./scripts/clt.sh monitor
 
 clt-scan:
 	chmod +x scripts/clt.sh
-	CLUSTER_PASS="redispw" bash scripts/clt.sh scan
+	CLUSTER_PASS=$(CLUSTER_PASS) bash scripts/clt.sh scan
 
 clt-test:
 	chmod +x tests/clt.sh
 	bash ./tests/clt.sh
 
 # current only support on CI
-# Flags: Local: NODE_HOSTS="node-1:6379,node-2:6379,node-3:6379"
 clt-bench:
 	chmod +x tests/clt-bench.sh
-	CLUSTER_PASS="redispw" RESULT_DIR=$(CLT_BENCH_DIR) bash ./tests/clt-bench.sh
+	CLUSTER_PASS=$(CLUSTER_PASS) RESULT_DIR=$(CLT_BENCH_DIR) bash ./tests/clt-bench.sh
 
 clt-rollback:
 	chmod +x scripts/clt-rollback.sh
-	CLUSTER_PASS="redispw" bash ./scripts/clt-rollback.sh
+	CLUSTER_PASS=$(CLUSTER_PASS) bash ./scripts/clt-rollback.sh
 
 clt-scale:
 	docker-compose -f $(CLT_COMPOSE_FILE) up -d node-7
 	chmod +x scripts/clt-scale.sh
-	CLUSTER_PASS="redispw" bash ./scripts/clt-scale.sh add node-7
-	CLUSTER_PASS="redispw" bash ./scripts/clt-scale.sh remove node-6
-	CLUSTER_PASS="redispw" bash ./scripts/clt-scale.sh rebalance
+	CLUSTER_PASS=$(CLUSTER_PASS) bash ./scripts/clt-scale.sh add node-7
+	CLUSTER_PASS=$(CLUSTER_PASS) bash ./scripts/clt-scale.sh remove node-6
+	CLUSTER_PASS=$(CLUSTER_PASS) bash ./scripts/clt-scale.sh rebalance
 
 clt-health:
 	chmod +x scripts/clt-health.sh
@@ -130,8 +135,12 @@ clean:
 	docker compose -f $(HA_COMPOSE_FILE) down -v
 	docker compose -f $(DEV_COMPOSE_FILE) down -v
 	docker volume prune -f
-	rm -rf $(RESULT_DIR)
+	rm -rf $(CLT_BENCH_DIR)
 
 # 	Flags: -j <job_name>
 ci:
 	act -W .github/workflows/ci.yml --rm --pull=false --secret DOCKER_USERNAME= --secret DOCKER_PASSWORD=
+
+
+# Examples:
+# ex-clt:

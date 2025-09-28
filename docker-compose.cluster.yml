@@ -1,100 +1,91 @@
-x-node-base: &node-base
+x-redis-base: &redis-base
   image: thuongtruong1009/reluster:latest
   build:
     context: .
     dockerfile: ./configs/cluster/Dockerfile
-  networks:
-    - redisnet
   environment:
-    - ANNOUNCE_IP=
+    - REDIS_PASSWORD=redispw
   healthcheck:
-    test: ["CMD", "redis-cli", "ping"]
+    test: ["CMD", "redis-cli", "-a", "redispw", "ping"]
     interval: 10s
     timeout: 5s
     retries: 5
     start_period: 10s
+  networks:
+    - redisnet
 
 services:
   node-1:
-    <<: *node-base
+    <<: *redis-base
     container_name: node-1
+    hostname: node-1
     environment:
-      - ANNOUNCE_IP=node-1
+      - REDIS_HOST=node-1
     ports:
       - "7001:6379"
-    volumes:
-      - node-1-data:/data
+      - "17001:16379"
 
   node-2:
-    <<: *node-base
+    <<: *redis-base
     container_name: node-2
+    hostname: node-2
     environment:
-      - ANNOUNCE_IP=node-2
+      - REDIS_HOST=node-2
     ports:
       - "7002:6379"
-    volumes:
-      - node-2-data:/data
+      - "17002:16379"
 
   node-3:
-    <<: *node-base
+    <<: *redis-base
     container_name: node-3
+    hostname: node-3
     environment:
-      - ANNOUNCE_IP=node-3
+      - REDIS_HOST=node-3
     ports:
       - "7003:6379"
-    volumes:
-      - node-3-data:/data
+      - "17003:16379"
 
   node-4:
-    <<: *node-base
+    <<: *redis-base
     container_name: node-4
+    hostname: node-4
     environment:
-      - ANNOUNCE_IP=node-4
+      - REDIS_HOST=node-4
     ports:
       - "7004:6379"
-    volumes:
-      - node-4-data:/data
+      - "17004:16379"
 
   node-5:
-    <<: *node-base
+    <<: *redis-base
     container_name: node-5
+    hostname: node-5
     environment:
-      - ANNOUNCE_IP=node-5
+      - REDIS_HOST=node-5
     ports:
       - "7005:6379"
-    volumes:
-      - node-5-data:/data
+      - "17005:16379"
 
   node-6:
-    <<: *node-base
+    <<: *redis-base
     container_name: node-6
+    hostname: node-6
     environment:
-      - ANNOUNCE_IP=node-6
+      - REDIS_HOST=node-6
     ports:
       - "7006:6379"
-    volumes:
-      - node-6-data:/data
+      - "17006:16379"
 
   node-7:
-    <<: *node-base
+    <<: *redis-base
     container_name: node-7
+    hostname: node-7
     environment:
-      - ANNOUNCE_IP=node-7
+      - REDIS_HOST=node-7
     ports:
       - "7007:6379"
-    volumes:
-      - node-7-data:/data
+      - "17007:16379"
 
 networks:
   redisnet:
     name: redisnet
     driver: bridge
-
-volumes:
-  node-1-data:
-  node-2-data:
-  node-3-data:
-  node-4-data:
-  node-5-data:
-  node-6-data:
-  node-7-data:
