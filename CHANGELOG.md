@@ -13,6 +13,7 @@
 - cmd: Patch version and CI directory name
 - compose: Dynamic binding hostname to cluster node
 - Automatically scale out/in and re-balance nodes
+- using container names and network in Redis Cluster benchmarks CI tests
 
 ### 🛠️ CI/CD
 

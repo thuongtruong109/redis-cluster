@@ -1,7 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-CLUSTER_PASS=${CLUSTER_PASS:-"redispw"}
 MAX_RETRY=${MAX_RETRY:-3}
 STATE_FILE=".rollback-state.json"
 LOG_FILE="/tmp/redis_cluster_rollback.log"
