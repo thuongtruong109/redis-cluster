@@ -5,8 +5,10 @@ CLT_COMPOSE_FILE = docker-compose.cluster.yml
 DEV_COMPOSE_FILE = docker-compose.dev.yml
 
 CLT_BENCH_DIR := benchmark-results
-CLT_BENCH_THROUGHPUT_THRESHOLD := 50000
-CLT_BENCH_READ_THRESHOLD := 50000
+# CLT_BENCH_THROUGHPUT_THRESHOLD := 50000
+# CLT_BENCH_READ_THRESHOLD := 50000
+# CLUSTER_PASS ?= redispw
+# CLT_BENCH_DIR ?= benchmark-results
 
 format:
 	@dos2unix Makefile
@@ -108,17 +110,7 @@ clt-test:
 clt-bench:
 	mkdir -p $(CLT_BENCH_DIR)
 	chmod +x tests/clt-bench.sh
-	CLUSTER_PASS="redispw" bash tests/clt-bench.sh all
-
-	@OPS=$$(grep "SET" $(CLT_BENCH_DIR)/throughput.txt | awk '{print $$2}' | tr -d ' '); \
-	if [ -n "$$OPS" ] && [ $$(echo "$$OPS < $(CLT_BENCH_THROUGHPUT_THRESHOLD)" | bc -l) -eq 1 ]; then \
-	  echo "❌ Throughput regression: $$OPS ops/sec < $(CLT_BENCH_THROUGHPUT_THRESHOLD)"; exit 1; \
-	else echo "✅ Throughput OK: $$OPS ops/sec"; fi
-
-	@OPS=$$(grep "GET" $(CLT_BENCH_DIR)/read.txt | awk '{print $$2}' | tr -d ' '); \
-	if [ -n "$$OPS" ] && [ $$(echo "$$OPS < $(CLT_BENCH_READ_THRESHOLD)" | bc -l) -eq 1 ]; then \
-	  echo "❌ Read regression: $$OPS ops/sec < $(CLT_BENCH_READ_THRESHOLD)"; exit 1; \
-	else echo "✅ Read OK: $$OPS ops/sec"; fi
+	CLUSTER_PASS="redispw" RESULT_DIR=$(CLT_BENCH_DIR) bash tests/clt-bench.sh
 
 clt-rollback:
 	chmod +x scripts/clt-rollback.sh

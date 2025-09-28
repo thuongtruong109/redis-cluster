@@ -17,13 +17,13 @@
 
 ### 🛠️ CI/CD
 
-- cluster: Automatically rollback when errors are detected on node
-- workflow: Change build context
-- workflow: Fix condition run
-- workflow: Build and publish image
+- Cluster automatically rollback when errors are detected on node
+- Change build context, Fix condition run
+- Build and publish image
 - safely upload Trivy SARIF skip if missing in security scan
 - refactor and enhance workflow for replica/cluster tests, security scans, health checks, and notifications
 - make cluster-health-check retry count safe if artifact missing
+- Lint and analyze code score
 
 ### 🧪 Tests
 

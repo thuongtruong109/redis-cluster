@@ -24,12 +24,12 @@ This project provides a **hands-on Redis lab** that covers both **Sentinel** and
 
 ## ✨ Features
 
-- ✅ Quick Bootstrap – Start Sentinel & Cluster in seconds with Docker Compose
-- ✅ Automation Scripts – Health checks, failover tests, backups, slot rebalancing
-- ✅ Monitoring Stack – RedisInsight, Redis Commander, Prometheus, Grafana, Alerts (Slack/Email/Telegram)
-- ✅ CI/CD Ready – GitHub Actions/GitLab CI for automated testing & deployment
-- ✅ Real-World Demos – Integration with Node.js, Python, Java, Go, etc. (caching, pub/sub, queues, sessions)
-- ✅ Advanced Guides – Kubernetes (Helm, StatefulSet, Operator), Cloud Backup/Restore, TLS/Security
+- [x] Quick Bootstrap – Start Sentinel & Cluster in seconds with Docker Compose
+- [x] Automation Scripts – Health checks, failover tests, backups, slot rebalancing
+- [x] Monitoring Stack – RedisInsight, Redis Commander, Prometheus, Grafana, Alerts (Slack/Email/Telegram)
+- [x] CI/CD Ready – GitHub Actions/GitLab CI for automated testing & deployment
+- [x] Real-World Demos – Integration with Node.js, Python, Java, Go, etc. (caching, pub/sub, queues, sessions)
+- [x] Advanced Guides – Kubernetes (Helm, StatefulSet, Operator), Cloud Backup/Restore, TLS/Security
 
 ## 👤 Who Is This For?
 
@@ -74,14 +74,17 @@ We welcome contributions! Please see our [Contributing Guidelines](.github/CONTR
 💡 Fork → Hack → Test → PR.
 Bug reports & feature requests welcome in [Issues](https://github.com/thuongtruong109/reluster/issues).
 
-### Issue Templates
+We invite you to contribute and help improve Reluster 💚
 
-- [🐛 Bug Report](.github/ISSUE_TEMPLATE/bug-report.yml)
-- [✨ Feature Request](.github/ISSUE_TEMPLATE/feature-request.yml)
+Here are a few ways you can get involved:
+
+- **🐛 Reporting Bugs:** If you come across any bugs or issues, please check out the [reporting bugs guide](https://github.com/thuongtruong109/reluster/issues) to learn how to submit a bug report.
+- **✨ Suggestions:** Have ideas to enhance features? We'd love to hear them! Check out the [contribution guide](.github/CONTRIBUTING.md) to share your suggestions.
+- **❓ Questions:** If you have questions or need assistance, open [discussions](https://github.com/thuongtruong109/reluster/discussions) or join our to connect with other users and contributors.
 
 ## 📝 License
 
-Distributed under the [Apache 2.0](LICENSE)
+Distributed under the [Apache 2.0](LICENSE) license. Copyright (c) 2025 Thuong Truong.
 
 <!-- https://medium.com/@jielim36/basic-docker-compose-and-build-a-redis-cluster-with-docker-compose-0313f063afb6 -->
 <!-- https://dev.to/hedgehog/set-up-redis-diskless-replication-359 -->

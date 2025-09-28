@@ -275,8 +275,7 @@ jobs:
       - name: Install redis-benchmark and dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y redis-tools bc build-essential autoconf automake \
-            libpcre3-dev libevent-dev pkg-config zlib1g-dev git
+          sudo apt-get install -y redis-tools bc build-essential autoconf automake libpcre3-dev libevent-dev pkg-config zlib1g-dev git
 
       - name: Install memtier_benchmark
         run: |
