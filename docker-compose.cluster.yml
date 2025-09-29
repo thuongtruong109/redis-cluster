@@ -77,7 +77,7 @@ services:
       REDIS_HOST: node-7
 
   benchmark:
-    image: thuongtruong1009/reluster-bench:latest
+    # image: thuongtruong1009/reluster-bench:latest
     container_name: benchmark
     build:
       context: .
@@ -88,7 +88,7 @@ services:
     networks:
       - redisnet
     volumes:
-      - ./results:/results
+      - ./benchmark-results:/benchmark-results
     depends_on:
       - node-1
       - node-2
