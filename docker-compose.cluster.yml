@@ -8,6 +8,8 @@ x-redis-base: &redis-base
   build:
     context: .
     dockerfile: ./configs/cluster/Dockerfile
+  environment:
+    REDIS_PASSWORD: ${REDIS_PASSWORD}
   networks:
     - redisnet
   healthcheck:
