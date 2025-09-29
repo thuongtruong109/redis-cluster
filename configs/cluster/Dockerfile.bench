@@ -1,16 +1,19 @@
 FROM ubuntu:22.04
 
 RUN apt-get update && \
-    apt-get install -y \
-        redis-tools bc build-essential autoconf automake libpcre3-dev \
-        libevent-dev pkg-config zlib1g-dev libssl-dev git cmake wget curl && \
+    apt-get install -y redis-tools bc build-essential autoconf automake \
+        libpcre3-dev libevent-dev pkg-config zlib1g-dev libssl-dev git cmake wget curl && \
     rm -rf /var/lib/apt/lists/*
 
-RUN git clone https://github.com/RedisLabs/memtier_benchmark.git /memtier_benchmark && \
-    cd /memtier_benchmark && \
-    mkdir build && cd build && \
-    cmake .. && make && make install && \
-    rm -rf /memtier_benchmark
+WORKDIR /tmp
+RUN wget https://github.com/RedisLabs/memtier_benchmark/archive/refs/heads/master.zip -O memtier.zip && \
+    unzip memtier.zip && \
+    mv memtier_benchmark-master /memtier_benchmark && \
+    rm memtier.zip
+
+WORKDIR /memtier_benchmark
+RUN mkdir build && cd build && \
+    cmake .. && make && make install
 
 WORKDIR /app
 COPY tests/clt-bench.sh /app/tests/clt-bench.sh
