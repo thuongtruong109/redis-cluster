@@ -3,8 +3,6 @@ set -e
 
 if [ -z "${REDIS_HOST:-}" ]; then
     REDIS_HOST=$(hostname -i)
-else
-    echo "Using REDIS_HOST from environment: $REDIS_HOST"
 fi
 
 export REDIS_HOST

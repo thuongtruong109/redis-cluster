@@ -4,7 +4,7 @@ networks:
     driver: bridge
 
 x-redis-base: &redis-base
-  image: thuongtruong1009/reluster-bench:latest
+  image: thuongtruong1009/reluster:latest
   build:
     context: .
     dockerfile: ./configs/cluster/Dockerfile
