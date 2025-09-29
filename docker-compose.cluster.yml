@@ -85,7 +85,8 @@ services:
     networks:
       - redisnet
     environment:
-      CLUSTER_PASS: ${REDIS_PASSWORD}
+      # CLUSTER_PASS: ${REDIS_PASSWORD}
+      REDIS_HOST: node-1
       REDIS_PASSWORD: ${REDIS_PASSWORD}
     volumes:
       - ./results:/results
