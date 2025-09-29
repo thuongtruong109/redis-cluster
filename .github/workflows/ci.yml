@@ -320,6 +320,9 @@ jobs:
       #   if: always()
       #   run: make clean
 
+      - name: Prepare test results
+        run: mkdir -p results
+
       - name: Run cluster performance benchmarks
         run: |
           docker build -f configs/cluster/Dockerfile.bench -t reluster-bench:latest .
@@ -336,11 +339,9 @@ jobs:
           name: redis-benchmark-results
           path: ./results
 
-      - name: Collect Results
-        run: |
-          mkdir -p results
-          docker cp $(docker compose -f docker-compose.cluster.yml ps -q benchmark):/results ./results
-          ls -lah results
+      - name: Shutdown cluster services
+        if: always()
+        run: make clean
 
   # notify:
   #   runs-on: ubuntu-latest
