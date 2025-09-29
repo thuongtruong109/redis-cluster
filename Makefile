@@ -8,7 +8,7 @@ DEV_COMPOSE_FILE = docker-compose.dev.yml
 CLT_BENCH_DIR=benchmark-results
 REDIS_PASSWORD=redispw
 CLT_BENCH_IMAGE=thuongtruong1009/reluster-bench:latest
-# REDIS_NETWORK=redisnet
+REDIS_NETWORK=redisnet
 
 # CLUSTER_PASS=${REDIS_PASSWORD}
 # CLUSTER_INIT_NODES = 6
