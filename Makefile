@@ -7,7 +7,7 @@ DEV_COMPOSE_FILE = docker-compose.dev.yml
 
 CLT_BENCH_DIR=benchmark-results
 REDIS_PASSWORD=redispw
-# CLT_BENCH_IMAGE=thuongtruong1009/reluster-bench:latest
+CLT_BENCH_IMAGE=thuongtruong1009/reluster-bench:latest
 # REDIS_NETWORK=redisnet
 
 # CLUSTER_PASS=${REDIS_PASSWORD}
@@ -116,24 +116,18 @@ clt-bench:
 # 	CLUSTER_PASS=$(REDIS_PASSWORD) RESULT_DIR=$(CLT_BENCH_DIR) bash ./tests/clt-bench.sh
 
 	mkdir -p $(CLT_BENCH_DIR)
-# 	docker build -f configs/cluster/Dockerfile.bench -t $(CLT_BENCH_IMAGE) .
-# 	docker run --rm \
-# 		--network $(REDIS_NETWORK) \
-# 		-v $$(pwd)/$(CLT_BENCH_DIR):/results \
-# 		-e REDIS_PASSWORD=$${REDIS_PASSWORD} \
-# 		-e REDIS_HOST=node-1 \
-# 		$(CLT_BENCH_IMAGE)
+	docker build -f configs/cluster/Dockerfile.bench -t $(CLT_BENCH_IMAGE) .
+	docker run --rm \
+		--network $(REDIS_NETWORK) \
+		-v $$(pwd)/$(CLT_BENCH_DIR):/results \
+		-e REDIS_PASSWORD=$${REDIS_PASSWORD} \
+		-e REDIS_HOST=node-1 \
+		$(CLT_BENCH_IMAGE)
 
-	docker compose -f $(CLT_COMPOSE_FILE) up -d --build benchmark
+# 	docker compose -f $(CLT_COMPOSE_FILE) up -d --build benchmark
 # 	docker compose -f $(CLT_COMPOSE_FILE) exec -T benchmark CLUSTER_PASS=$(REDIS_PASSWORD) RESULT_DIR=/benchmark-results bash /app/tests/clt-bench.sh
 
-# 	docker compose -f docker-compose.cluster.yml exec -T \
-# 	-e CLUSTER_PASS=$(REDIS_PASSWORD) \
-# 	-e RESULT_DIR=/benchmark-results \
-# 	benchmark \
-# 	bash /app/tests/clt-bench.sh
-
-	docker compose -f docker-compose.cluster.yml exec -T benchmark bash -c "export CLUSTER_PASS=$(REDIS_PASSWORD) RESULT_DIR=/benchmark-results && /app/tests/clt-bench.sh"
+# 	docker compose -f docker-compose.cluster.yml exec -T benchmark bash -c "export CLUSTER_PASS=$(REDIS_PASSWORD) RESULT_DIR=/benchmark-results && /app/tests/clt-bench.sh"
 
 clt-rollback:
 	chmod +x scripts/clt-rollback.sh

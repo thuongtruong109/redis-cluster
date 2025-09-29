@@ -77,7 +77,7 @@ services:
       REDIS_HOST: node-7
 
   benchmark:
-    # image: thuongtruong1009/reluster-bench:latest
+    image: thuongtruong1009/reluster-bench:latest
     container_name: benchmark
     build:
       context: .
