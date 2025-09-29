@@ -4,10 +4,12 @@ networks:
     driver: bridge
 
 x-redis-base: &redis-base
-  image: thuongtruong1009/reluster-bench:latest
+  image: thuongtruong1009/reluster:latest
   build:
     context: .
     dockerfile: ./configs/cluster/Dockerfile
+  environment:
+    REDIS_PASSWORD: ${REDIS_PASSWORD}
   networks:
     - redisnet
   healthcheck:
@@ -21,58 +23,44 @@ services:
   node-1:
     <<: *redis-base
     container_name: node-1
-    hostname: node-1
-    environment:
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-      REDIS_HOST: node-1
+    ports:
+      - "6379:6379"
+      - "16379:16379"
 
   node-2:
     <<: *redis-base
     container_name: node-2
-    hostname: node-2
-    environment:
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-      REDIS_HOST: node-2
+    ports:
+      - "6380:6379"
+      - "16380:16379"
 
   node-3:
     <<: *redis-base
     container_name: node-3
-    hostname: node-3
-    environment:
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-      REDIS_HOST: node-3
+    ports:
+      - "6381:6379"
+      - "16381:16379"
 
   node-4:
     <<: *redis-base
     container_name: node-4
-    hostname: node-4
-    environment:
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-      REDIS_HOST: node-4
+    ports:
+      - "6382:6379"
+      - "16382:16379"
 
   node-5:
     <<: *redis-base
     container_name: node-5
-    hostname: node-5
-    environment:
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-      REDIS_HOST: node-5
+    ports:
+      - "6383:6379"
+      - "16383:16379"
 
   node-6:
     <<: *redis-base
     container_name: node-6
-    hostname: node-6
-    environment:
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-      REDIS_HOST: node-6
-
-  node-7:
-    <<: *redis-base
-    container_name: node-7
-    hostname: node-7
-    environment:
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-      REDIS_HOST: node-7
+    ports:
+      - "6384:6379"
+      - "16384:16379"
 
   benchmark:
     image: thuongtruong1009/reluster-bench:latest
@@ -82,7 +70,7 @@ services:
       dockerfile: ./configs/cluster/Dockerfile.bench
     environment:
       - CLUSTER_PASS=${REDIS_PASSWORD}
-      - REDIS_HOST=node-1
+      - REDIS_HOST=127.0.0.1
     networks:
       - redisnet
     volumes:
