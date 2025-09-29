@@ -5,11 +5,14 @@ HA_COMPOSE_FILE = docker-compose.ha.yml
 CLT_COMPOSE_FILE = docker-compose.cluster.yml
 DEV_COMPOSE_FILE = docker-compose.dev.yml
 
-CLT_BENCH_DIR = benchmark-results
+CLT_BENCH_DIR=benchmark-results
 REDIS_PASSWORD=redispw
+# CLT_BENCH_IMAGE=thuongtruong1009/reluster-bench:latest
+# REDIS_NETWORK=redisnet
+
 # CLUSTER_PASS=${REDIS_PASSWORD}
-CLUSTER_INIT_NODES = 6
-CLUSTER_TOTAL_NODES = 7
+# CLUSTER_INIT_NODES = 6
+# CLUSTER_TOTAL_NODES = 7
 
 format:
 	@dos2unix Makefile
@@ -112,14 +115,20 @@ clt-bench:
 # 	chmod +x tests/clt-bench.sh
 # 	CLUSTER_PASS=$(REDIS_PASSWORD) RESULT_DIR=$(CLT_BENCH_DIR) bash ./tests/clt-bench.sh
 
-	docker build -f configs/cluster/Dockerfile.bench -t $(BENCH_IMAGE) .
-	mkdir -p $(RESULT_DIR)
-	docker run --rm \
-		--network $(REDIS_NETWORK) \
-		-v $$(pwd)/$(RESULT_DIR):/results \
-		-e REDIS_PASSWORD=$${REDIS_PASSWORD} \
+	mkdir -p $(CLT_BENCH_DIR)
+# 	docker build -f configs/cluster/Dockerfile.bench -t $(CLT_BENCH_IMAGE) .
+# 	docker run --rm \
+# 		--network $(REDIS_NETWORK) \
+# 		-v $$(pwd)/$(CLT_BENCH_DIR):/results \
+# 		-e REDIS_PASSWORD=$${REDIS_PASSWORD} \
+# 		-e REDIS_HOST=node-1 \
+# 		$(CLT_BENCH_IMAGE)
+
+	docker compose -f $(CLT_COMPOSE_FILE) run --rm \
+		-e CLUSTER_PASS=$${REDIS_PASSWORD} \
 		-e REDIS_HOST=node-1 \
-		$(BENCH_IMAGE)
+		-v $$(pwd)/$(CLT_BENCH_DIR):/benchmark-results \
+		benchmark
 
 clt-rollback:
 	chmod +x scripts/clt-rollback.sh

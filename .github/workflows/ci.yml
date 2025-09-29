@@ -322,11 +322,11 @@ jobs:
       #       -e REDIS_HOST=node-1 \
       #       reluster-bench:latest
 
-      # - name: Upload benchmark results
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: redis-benchmark-results
-      #     path: ./results
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: redis-benchmark-results
+          path: ./benchmark-results
 
       - name: Shutdown cluster services
         if: always()

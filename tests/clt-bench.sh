@@ -8,12 +8,6 @@ NODE_HOSTS="node-1:6379,node-2:6379,node-3:6379,node-4:6379,node-5:6379,node-6:6
 
 RESULT_DIR=${RESULT_DIR:-/results}
 
-echo "Running benchmark with:"
-echo "  CLUSTER_PASS=$CLUSTER_PASS"
-echo "  REDIS_HOST=$REDIS_HOST"
-echo "  RESULT_DIR=$RESULT_DIR"
-
-
 mkdir -p "$RESULT_DIR"
 
 IFS=',' read -r -a NODES <<< "$NODE_HOSTS"
