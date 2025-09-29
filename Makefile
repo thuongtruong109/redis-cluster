@@ -131,6 +131,7 @@ clt-bench:
 # 		benchmark
 
 	docker compose -f $(CLT_COMPOSE_FILE) up -d benchmark
+	CLUSTER_PASS=$(REDIS_PASSWORD) RESULT_DIR=$(CLT_BENCH_DIR) bash ./tests/clt-bench.sh
 
 clt-rollback:
 	chmod +x scripts/clt-rollback.sh
