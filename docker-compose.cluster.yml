@@ -8,10 +8,10 @@ x-redis-base: &redis-base
   build:
     context: .
     dockerfile: ./configs/cluster/Dockerfile
-  environment:
-    REDIS_PASSWORD: ${REDIS_PASSWORD}
   networks:
     - redisnet
+  environment:
+    REDIS_PASSWORD: ${REDIS_PASSWORD} # password chung
   healthcheck:
     test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
     interval: 10s
@@ -25,7 +25,7 @@ services:
     container_name: node-1
     hostname: node-1
     environment:
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_PASSWORD: ${REDIS_PASSWORD} # merge password từ base
       REDIS_HOST: node-1
 
   node-2:
@@ -68,7 +68,7 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       REDIS_HOST: node-6
 
-  node-7:
+  node-7: # failover / future replica
     <<: *redis-base
     container_name: node-7
     hostname: node-7
@@ -88,8 +88,11 @@ services:
     networks:
       - redisnet
     volumes:
-      - ./benchmark-results:/benchmark-results
+      - ./results:/results
     depends_on:
       - node-1
       - node-2
       - node-3
+      - node-4
+      - node-5
+      - node-6

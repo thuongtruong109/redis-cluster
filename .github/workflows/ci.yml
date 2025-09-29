@@ -3,22 +3,8 @@ name: CI
 on:
   push:
     branches: [main]
-    paths:
-      - ".github/workflows/ci.yml"
-      - "configs/**"
-      - "scripts/**"
-      - "tests/**"
-      - "docker-compose.cluster.yml"
-      - "docker-compose.ha.yml"
   pull_request:
     branches: [main]
-    paths:
-      - ".github/workflows/ci.yml"
-      - "configs/**"
-      - "scripts/**"
-      - "tests/**"
-      - "docker-compose.cluster.yml"
-      - "docker-compose.ha.yml"
   workflow_dispatch: {}
 
 jobs:
@@ -294,6 +280,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Verify Docker
+        run: |
+          which docker
+          docker --version
+          docker info
+
+      - name: Install redis-benchmark and memtier_benchmark
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y redis-tools bc build-essential autoconf automake libpcre3-dev libevent-dev pkg-config zlib1g-dev git
+
+          git clone https://github.com/RedisLabs/memtier_benchmark.git
+          cd memtier_benchmark
+          autoreconf -ivf
+          ./configure
+          make
+          sudo make install
+
       - name: Start Redis Cluster
         run: |
           make clt
@@ -302,14 +306,38 @@ jobs:
       - name: Wait for services to be ready
         run: make clt-ready
 
+      # - name: Run cluster performance benchmarks
+      # run: make clt-bench
+
+      # - name: Upload benchmark results
+      #   if: always()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: cluster-bench-results
+      #     path: benchmark-results/*
+
+      # - name: Cleanup performance test
+      #   if: always()
+      #   run: make clean
+
+      - name: Prepare test results
+        run: mkdir -p results
+
       - name: Run cluster performance benchmarks
-        run: make clt-bench
+        run: |
+          docker build -f configs/cluster/Dockerfile.bench -t reluster-bench:latest .
+          docker run --rm \
+            --network redisnet \
+            -v $PWD/results:/results \
+            -e REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }} \
+            -e REDIS_HOST=node-1 \
+            reluster-bench:latest
 
       - name: Upload benchmark results
         uses: actions/upload-artifact@v4
         with:
           name: redis-benchmark-results
-          path: ./benchmark-results
+          path: ./results
 
       - name: Shutdown cluster services
         if: always()
