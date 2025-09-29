@@ -10,10 +10,6 @@ REDIS_PASSWORD=redispw
 CLT_BENCH_IMAGE=thuongtruong1009/reluster-bench:latest
 REDIS_NETWORK=redisnet
 
-# CLUSTER_PASS=${REDIS_PASSWORD}
-# CLUSTER_INIT_NODES = 6
-# CLUSTER_TOTAL_NODES = 7
-
 format:
 	@dos2unix Makefile
 	@sed -i 's/\r$$//' Makefile configs/ha/sentinel/sentinel.conf configs/ha/replica/slave.conf configs/ha/replica/master.conf configs/cluster/node.conf
