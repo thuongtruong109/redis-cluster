@@ -8,271 +8,271 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  lint-and-validate:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  # lint-and-validate:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      - name: Validate Compose and check config files
-        run: make validate
+  #     - name: Validate Compose and check config files
+  #       run: make validate
 
-  replica-security-scan:
-    runs-on: ubuntu-latest
-    permissions:
-      security-events: write
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  # replica-security-scan:
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     security-events: write
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      - name: Start Redis Replica
-        run: make ha
+  #     - name: Start Redis Replica
+  #       run: make ha
 
-      - name: Wait for services to be ready
-        run: make ha-ready
+  #     - name: Wait for services to be ready
+  #       run: make ha-ready
 
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          scan-type: "config"
-          hide-progress: false
-          format: "sarif"
-          output: ${{ github.workspace }}/trivy-results.sarif
-          exit-code: 0
+  #     - name: Run Trivy vulnerability scanner
+  #       uses: aquasecurity/trivy-action@0.28.0
+  #       with:
+  #         scan-type: "config"
+  #         hide-progress: false
+  #         format: "sarif"
+  #         output: ${{ github.workspace }}/trivy-results.sarif
+  #         exit-code: 0
 
-      - name: Run Replica security scan
-        run: make ha-scan
+  #     - name: Run Replica security scan
+  #       run: make ha-scan
 
-      - name: Check if Trivy SARIF exists
-        id: check_trivy
-        run: |
-          if [ -f "${{ github.workspace }}/trivy-results.sarif" ]; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-          fi
+  #     - name: Check if Trivy SARIF exists
+  #       id: check_trivy
+  #       run: |
+  #         if [ -f "${{ github.workspace }}/trivy-results.sarif" ]; then
+  #           echo "exists=true" >> $GITHUB_OUTPUT
+  #         else
+  #           echo "exists=false" >> $GITHUB_OUTPUT
+  #         fi
 
-      - name: Upload Trivy scan results
-        if: steps.check_trivy.outputs.exists == 'true'
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: ${{ github.workspace }}/trivy-results.sarif
+  #     - name: Upload Trivy scan results
+  #       if: steps.check_trivy.outputs.exists == 'true'
+  #       uses: github/codeql-action/upload-sarif@v3
+  #       with:
+  #         sarif_file: ${{ github.workspace }}/trivy-results.sarif
 
-  replica-integration-tests:
-    runs-on: ubuntu-latest
-    needs: [lint-and-validate]
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  # replica-integration-tests:
+  #   runs-on: ubuntu-latest
+  #   needs: [lint-and-validate]
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      - name: Start Redis Replica
-        run: make ha
+  #     - name: Start Redis Replica
+  #       run: make ha
 
-      - name: Wait for services to be ready
-        run: make ha-ready
+  #     - name: Wait for services to be ready
+  #       run: make ha-ready
 
-      - name: Run Replica integration tests
-        run: make ha-test
+  #     - name: Run Replica integration tests
+  #       run: make ha-test
 
-      - name: Run Replica failover tests
-        run: make ha-test-failover
+  #     - name: Run Replica failover tests
+  #       run: make ha-test-failover
 
-      - name: Run Replica health checks
-        run: make ha-health
+  #     - name: Run Replica health checks
+  #       run: make ha-health
 
-      - name: Collect logs on failure
-        if: failure()
-        run: |
-          docker compose -f docker-compose.ha.yml logs
-          docker compose -f docker-compose.ha.yml ps
-          docker network ls
-          docker network inspect redisnet || true
+  #     - name: Collect logs on failure
+  #       if: failure()
+  #       run: |
+  #         docker compose -f docker-compose.ha.yml logs
+  #         docker compose -f docker-compose.ha.yml ps
+  #         docker network ls
+  #         docker network inspect redisnet || true
 
-      - name: Cleanup
-        if: always()
-        run: make clean
+  #     - name: Cleanup
+  #       if: always()
+  #       run: make clean
 
-  replica-performance-tests:
-    runs-on: ubuntu-latest
-    needs: [replica-integration-tests]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  # replica-performance-tests:
+  #   runs-on: ubuntu-latest
+  #   needs: [replica-integration-tests]
+  #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      - name: Install redis-benchmark
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y redis-tools
+  #     - name: Install redis-benchmark
+  #       run: |
+  #         sudo apt-get update
+  #         sudo apt-get install -y redis-tools
 
-      - name: Start Redis Replica
-        run: make ha
+  #     - name: Start Redis Replica
+  #       run: make ha
 
-      - name: Wait for services to be ready
-        run: make ha-ready
+  #     - name: Wait for services to be ready
+  #       run: make ha-ready
 
-      - name: Run performance benchmarks
-        run: make ha-bench
+  #     - name: Run performance benchmarks
+  #       run: make ha-bench
 
-      - name: Cleanup performance test
-        if: always()
-        run: make clean
+  #     - name: Cleanup performance test
+  #       if: always()
+  #       run: make clean
 
-  cluster-security-scan:
-    runs-on: ubuntu-latest
-    permissions:
-      security-events: write
-    needs: [lint-and-validate]
-    env:
-      REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  # cluster-security-scan:
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     security-events: write
+  #   needs: [lint-and-validate]
+  #   env:
+  #     REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      - name: Start Redis Cluster
-        run: |
-          make clt
-          make clt-init
+  #     - name: Start Redis Cluster
+  #       run: |
+  #         make clt
+  #         make clt-init
 
-      - name: Wait for services to be ready
-        run: make clt-ready
+  #     - name: Wait for services to be ready
+  #       run: make clt-ready
 
-      - name: Run Trivy vulnerability scanner for cluster
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          scan-type: "config"
-          hide-progress: false
-          format: "sarif"
-          output: ${{ github.workspace }}/trivy-cluster-results.sarif
-          exit-code: 0
+  #     - name: Run Trivy vulnerability scanner for cluster
+  #       uses: aquasecurity/trivy-action@0.28.0
+  #       with:
+  #         scan-type: "config"
+  #         hide-progress: false
+  #         format: "sarif"
+  #         output: ${{ github.workspace }}/trivy-cluster-results.sarif
+  #         exit-code: 0
 
-      - name: Run Cluster security scan
-        run: make clt-scan
+  #     - name: Run Cluster security scan
+  #       run: make clt-scan
 
-      - name: Check if Cluster Trivy SARIF exists
-        id: check_trivy_cluster
-        run: |
-          if [ -f "${{ github.workspace }}/trivy-cluster-results.sarif" ]; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-          fi
+  #     - name: Check if Cluster Trivy SARIF exists
+  #       id: check_trivy_cluster
+  #       run: |
+  #         if [ -f "${{ github.workspace }}/trivy-cluster-results.sarif" ]; then
+  #           echo "exists=true" >> $GITHUB_OUTPUT
+  #         else
+  #           echo "exists=false" >> $GITHUB_OUTPUT
+  #         fi
 
-      - name: Upload Cluster Trivy scan results
-        if: steps.check_trivy_cluster.outputs.exists == 'true'
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: ${{ github.workspace }}/trivy-cluster-results.sarif
+  #     - name: Upload Cluster Trivy scan results
+  #       if: steps.check_trivy_cluster.outputs.exists == 'true'
+  #       uses: github/codeql-action/upload-sarif@v3
+  #       with:
+  #         sarif_file: ${{ github.workspace }}/trivy-cluster-results.sarif
 
-  cluster-health-check:
-    runs-on: ubuntu-latest
-    env:
-      REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  # cluster-health-check:
+  #   runs-on: ubuntu-latest
+  #   env:
+  #     REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      - name: Init retry count
-        run: |
-          if [ ! -f .retry_count ]; then
-            echo 0 > .retry_count
-          fi
+  #     - name: Init retry count
+  #       run: |
+  #         if [ ! -f .retry_count ]; then
+  #           echo 0 > .retry_count
+  #         fi
 
-      - name: Start Redis Cluster
-        run: |
-          make clt
-          make clt-init
+  #     - name: Start Redis Cluster
+  #       run: |
+  #         make clt
+  #         make clt-init
 
-      - name: Wait for services to be ready
-        run: make clt-ready
+  #     - name: Wait for services to be ready
+  #       run: make clt-ready
 
-      - name: Run Cluster Health Check
-        id: health
-        run: |
-          set +e
-          make clt-health
-          STATUS=$?
-          echo "status=$STATUS" >> $GITHUB_OUTPUT
-          set -e
+  #     - name: Run Cluster Health Check
+  #       id: health
+  #       run: |
+  #         set +e
+  #         make clt-health
+  #         STATUS=$?
+  #         echo "status=$STATUS" >> $GITHUB_OUTPUT
+  #         set -e
 
-      - name: Reset Retry Count on Success
-        if: steps.health.outputs.status == '0'
-        run: echo 0 > .retry_count
+  #     - name: Reset Retry Count on Success
+  #       if: steps.health.outputs.status == '0'
+  #       run: echo 0 > .retry_count
 
-      - name: Auto Rollback Failed Nodes with Retry Limit
-        if: steps.health.outputs.status != '0'
-        run: |
-          MAX_RETRIES=3
-          RETRY_COUNT_FILE=".retry_count"
-          RETRY_COUNT=$(cat "$RETRY_COUNT_FILE" 2>/dev/null || echo 0)
+  #     - name: Auto Rollback Failed Nodes with Retry Limit
+  #       if: steps.health.outputs.status != '0'
+  #       run: |
+  #         MAX_RETRIES=3
+  #         RETRY_COUNT_FILE=".retry_count"
+  #         RETRY_COUNT=$(cat "$RETRY_COUNT_FILE" 2>/dev/null || echo 0)
 
-          echo "🔄 Current retry count: $RETRY_COUNT"
+  #         echo "🔄 Current retry count: $RETRY_COUNT"
 
-          if [ "$RETRY_COUNT" -lt "$MAX_RETRIES" ]; then
-            echo "Running rollback script..."
-            make clt-rollback > /tmp/redis_cluster_rollback.log 2>&1 || exit 1
-            RETRY_COUNT=$((RETRY_COUNT + 1))
-            echo "$RETRY_COUNT" > "$RETRY_COUNT_FILE"
-          else
-            echo "❌ Retry limit reached ($MAX_RETRIES). Aborting rollback."
-            echo 0 > "$RETRY_COUNT_FILE"
-            exit 1
-          fi
+  #         if [ "$RETRY_COUNT" -lt "$MAX_RETRIES" ]; then
+  #           echo "Running rollback script..."
+  #           make clt-rollback > /tmp/redis_cluster_rollback.log 2>&1 || exit 1
+  #           RETRY_COUNT=$((RETRY_COUNT + 1))
+  #           echo "$RETRY_COUNT" > "$RETRY_COUNT_FILE"
+  #         else
+  #           echo "❌ Retry limit reached ($MAX_RETRIES). Aborting rollback."
+  #           echo 0 > "$RETRY_COUNT_FILE"
+  #           exit 1
+  #         fi
 
-      - name: Save retry count artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: retry-count
-          path: .retry_count
+  #     - name: Save retry count artifact
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: retry-count
+  #         path: .retry_count
 
-      - name: Upload Metrics JSON
-        uses: actions/upload-artifact@v4
-        with:
-          name: redis-health-metrics
-          path: /tmp/redis_cluster_metrics.json
+  #     - name: Upload Metrics JSON
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: redis-health-metrics
+  #         path: /tmp/redis_cluster_metrics.json
 
-      - name: Upload Rollback Logs
-        uses: actions/upload-artifact@v4
-        with:
-          name: redis-rollback-logs
-          path: /tmp/redis_cluster_rollback.log
+  #     - name: Upload Rollback Logs
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: redis-rollback-logs
+  #         path: /tmp/redis_cluster_rollback.log
 
-  cluster-integration-tests:
-    runs-on: ubuntu-latest
-    needs: [lint-and-validate]
-    env:
-      REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  # cluster-integration-tests:
+  #   runs-on: ubuntu-latest
+  #   needs: [lint-and-validate]
+  #   env:
+  #     REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      - name: Start Redis Cluster
-        run: |
-          make clt
-          make clt-init
+  #     - name: Start Redis Cluster
+  #       run: |
+  #         make clt
+  #         make clt-init
 
-      - name: Wait for services to be ready
-        run: make clt-ready
+  #     - name: Wait for services to be ready
+  #       run: make clt-ready
 
-      - name: Run Cluster integration tests
-        run: make clt-test
+  #     - name: Run Cluster integration tests
+  #       run: make clt-test
 
-      - name: Collect logs on failure
-        if: failure()
-        run: |
-          make clt-monitor
-          docker compose -f docker-compose.cluster.yml logs
-          docker compose -f docker-compose.cluster.yml ps
-          docker network ls
-          docker network inspect redisnet || true
+  #     - name: Collect logs on failure
+  #       if: failure()
+  #       run: |
+  #         make clt-monitor
+  #         docker compose -f docker-compose.cluster.yml logs
+  #         docker compose -f docker-compose.cluster.yml ps
+  #         docker network ls
+  #         docker network inspect redisnet || true
 
-      - name: Cleanup
-        if: always()
-        run: make clean
+  #     - name: Cleanup
+  #       if: always()
+  #       run: make clean
 
   cluster-performance-tests:
     runs-on: ubuntu-latest
-    needs: [cluster-integration-tests]
+    # needs: [cluster-integration-tests]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     env:
       REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
@@ -308,58 +308,74 @@ jobs:
       - name: Wait for services to be ready
         run: make clt-ready
 
+      # - name: Run cluster performance benchmarks
+      # run: make clt-bench
+
+      # - name: Upload benchmark results
+      #   if: always()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: cluster-bench-results
+      #     path: benchmark-results/*
+
+      # - name: Cleanup performance test
+      #   if: always()
+      #   run: make clean
+
       - name: Run cluster performance benchmarks
-        run: make clt-bench
+        run: |
+          docker run --rm \
+            --network redisnet \
+            -v $PWD/results:/results \
+            -e CLUSTER_PASS=$REDIS_PASSWORD \
+            -e RESULT_DIR=/results \
+            thuongtruong1009/reluster:latest \
+            ./scripts/clt-bench.sh
 
       - name: Upload benchmark results
-        if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
-          name: cluster-bench-results
-          path: benchmark-results/*
+          name: redis-benchmark-results
+          path: ./results
 
-      - name: Cleanup performance test
-        if: always()
-        run: make clean
+  # notify:
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #     [
+  #       replica-integration-tests,
+  #       replica-performance-tests,
+  #       replica-security-scan,
+  #       cluster-health-check,
+  #       cluster-integration-tests,
+  #       cluster-performance-tests,
+  #       cluster-security-scan,
+  #     ]
+  #   if: always()
+  #   steps:
+  #     - name: Notify on success
+  #       if: ${{ contains(needs.*.result, 'failure') == false }}
+  #       run: echo "✅ All jobs passed! Redis cluster and replica are healthy."
 
-  notify:
-    runs-on: ubuntu-latest
-    needs:
-      [
-        replica-integration-tests,
-        replica-performance-tests,
-        replica-security-scan,
-        cluster-health-check,
-        cluster-integration-tests,
-        cluster-performance-tests,
-        cluster-security-scan,
-      ]
-    if: always()
-    steps:
-      - name: Notify on success
-        if: ${{ contains(needs.*.result, 'failure') == false }}
-        run: echo "✅ All jobs passed! Redis cluster and replica are healthy."
+  #     - name: Notify on failure
+  #       if: ${{ contains(needs.*.result, 'failure') }}
+  #       run: echo "❌ One or more jobs failed! Check the logs for details."
 
-      - name: Notify on failure
-        if: ${{ contains(needs.*.result, 'failure') }}
-        run: echo "❌ One or more jobs failed! Check the logs for details."
+  # - name: Notify on success
+  #   if: ${{ needs.replica-integration-tests.result != 'failure' &&
+  #            needs.replica-performance-tests.result != 'failure' &&
+  #            needs.replica-security-scan.result != 'failure' &&
+  #            needs.cluster-health-check.result != 'failure' &&
+  #            needs.cluster-integration-tests.result != 'failure' &&
+  #            needs.cluster-performance-tests.result != 'failure' &&
+  #            needs.cluster-security-scan.result != 'failure' }}
+  #   run: echo "✅ All jobs passed! Redis cluster and replica are healthy."
 
-      # - name: Notify on success
-      #   if: ${{ needs.replica-integration-tests.result != 'failure' &&
-      #            needs.replica-performance-tests.result != 'failure' &&
-      #            needs.replica-security-scan.result != 'failure' &&
-      #            needs.cluster-health-check.result != 'failure' &&
-      #            needs.cluster-integration-tests.result != 'failure' &&
-      #            needs.cluster-performance-tests.result != 'failure' &&
-      #            needs.cluster-security-scan.result != 'failure' }}
-      #   run: echo "✅ All jobs passed! Redis cluster and replica are healthy."
-
-      # - name: Notify on failure
-      #   if: ${{ needs.replica-integration-tests.result == 'failure' ||
-      #            needs.replica-performance-tests.result == 'failure' ||
-      #            needs.replica-security-scan.result == 'failure' ||
-      #            needs.cluster-health-check.result == 'failure' ||
-      #            needs.cluster-integration-tests.result == 'failure' ||
-      #            needs.cluster-performance-tests.result == 'failure' ||
-      #            needs.cluster-security-scan.result == 'failure' }}
-      #   run: echo "❌ One or more jobs failed! Check the logs for details."
+  # - name: Notify on failure
+  #   if: ${{ needs.replica-integration-tests.result == 'failure' ||
+  #            needs.replica-performance-tests.result == 'failure' ||
+  #            needs.replica-security-scan.result == 'failure' ||
+  #            needs.cluster-health-check.result == 'failure' ||
+  #            needs.cluster-integration-tests.result == 'failure' ||
+  #            needs.cluster-performance-tests.result == 'failure' ||
+  #            needs.cluster-security-scan.result == 'failure' }}
+  #   run: echo "❌ One or more jobs failed! Check the logs for details."

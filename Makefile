@@ -5,7 +5,6 @@ CLT_COMPOSE_FILE = docker-compose.cluster.yml
 DEV_COMPOSE_FILE = docker-compose.dev.yml
 
 CLT_BENCH_DIR = benchmark-results
-# CLUSTER_PASS = redispw
 CLUSTER_PASS=${REDIS_PASSWORD}
 CLUSTER_INIT_NODES = 6
 CLUSTER_TOTAL_NODES = 7
@@ -38,7 +37,6 @@ commander-clt:
 	@$(MAKE) commander CONFIG_PATH=cluster.json
 
 ha:
-	@$(MAKE) env
 	docker compose -f $(HA_COMPOSE_FILE) up -d --force-recreate
 
 ha-cli:
@@ -80,8 +78,6 @@ ha-health:
 	chmod +x scripts/ha-health.sh
 	bash ./scripts/ha-health.sh --basic
 
-# - name: Set cluster announce ip for CI
-#   run: echo "REDIS_HOST=node-1" >> $GITHUB_ENV
 clt:
 	docker compose -f $(CLT_COMPOSE_FILE) up -d --build --force-recreate node-1 node-2 node-3 node-4 node-5 node-6
 
@@ -142,5 +138,5 @@ ci:
 	act -W .github/workflows/ci.yml --rm --pull=false --secret DOCKER_USERNAME= --secret DOCKER_PASSWORD=
 
 
-# Examples:
-# ex-clt:
+demo-ping:
+	cd examples/ping && npm install && npm run dev
