@@ -18,7 +18,8 @@ RUN apt-get update && apt-get install -y \
     wget \
     unzip \
     bison \
-    sudo && \
+    sudo \
+    libssl-dev && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN git clone https://github.com/RedisLabs/memtier_benchmark.git /memtier_benchmark
