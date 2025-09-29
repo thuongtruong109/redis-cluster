@@ -2,7 +2,7 @@ FROM ubuntu:22.04
 
 RUN apt-get update && \
     apt-get install -y redis-tools bc build-essential autoconf automake \
-        libpcre3-dev libevent-dev pkg-config zlib1g-dev libssl-dev git cmake wget curl && \
+        libpcre3-dev libevent-dev pkg-config zlib1g-dev libssl-dev git cmake wget unzip && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /tmp
