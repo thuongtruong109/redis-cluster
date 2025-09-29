@@ -6,5 +6,6 @@ RUN apt-get update && \
     cd /memtier_benchmark && autoreconf -ivf && ./configure && make && make install
 
 WORKDIR /app
-COPY tests /app/tests
+COPY tests/clt-bench.sh /app/tests/clt-bench.sh
+RUN chmod +x /app/tests/clt-bench.sh
 ENTRYPOINT ["bash", "/app/tests/clt-bench.sh"]
