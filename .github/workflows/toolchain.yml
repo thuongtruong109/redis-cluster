@@ -1,108 +1,108 @@
-# name: Toolchain
+name: Toolchain
 
-# on:
-#   push:
-#     branches: ["main"]
-#   pull_request:
-#     branches: ["main"]
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
 
-# permissions: read-all
+permissions: read-all
 
-# jobs:
-#   codeql-analysis:
-#     runs-on: ubuntu-latest
-#     permissions:
-#       security-events: write
-#       packages: read
-#       actions: read
-#       contents: read
+jobs:
+  codeql-analysis:
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      packages: read
+      actions: read
+      contents: read
 
-#     strategy:
-#       fail-fast: false
-#       matrix:
-#         include:
-#           - language: actions
-#             build-mode: none
-#     steps:
-#       - name: Checkout repository
-#         uses: actions/checkout@v4
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: actions
+            build-mode: none
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-#       - name: Initialize CodeQL
-#         uses: github/codeql-action/init@v3
-#         with:
-#           languages: ${{ matrix.language }}
-#           build-mode: ${{ matrix.build-mode }}
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
 
-#       - name: Perform CodeQL Analysis
-#         uses: github/codeql-action/analyze@v3
-#         with:
-#           category: "/language:${{matrix.language}}"
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{matrix.language}}"
 
-#   hadolint:
-#     runs-on: ubuntu-latest
-#     permissions:
-#       contents: read
-#       security-events: write
-#       actions: read
-#     steps:
-#       - name: Checkout code
-#         uses: actions/checkout@v4
+  hadolint:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-#       - name: Run hadolint
-#         uses: hadolint/hadolint-action@f988afea3da57ee48710a9795b6bb677cc901183
-#         with:
-#           dockerfile: ./configs/cluster/Dockerfile
-#           format: sarif
-#           output-file: hadolint-results.sarif
-#           no-fail: true
+      - name: Run hadolint
+        uses: hadolint/hadolint-action@f988afea3da57ee48710a9795b6bb677cc901183
+        with:
+          dockerfile: ./configs/cluster/Dockerfile
+          format: sarif
+          output-file: hadolint-results.sarif
+          no-fail: true
 
-#       - name: Upload analysis results to GitHub
-#         uses: github/codeql-action/upload-sarif@v3
-#         with:
-#           sarif_file: hadolint-results.sarif
-#           wait-for-processing: true
+      - name: Upload analysis results to GitHub
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: hadolint-results.sarif
+          wait-for-processing: true
 
-#   scorecards-analysis:
-#     runs-on: ubuntu-latest
-#     permissions:
-#       security-events: write
-#       id-token: write
-#     steps:
-#       - name: "Checkout code"
-#         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # 4.2.2
-#         with:
-#           persist-credentials: false
-#       - name: "Run analysis"
-#         uses: ossf/scorecard-action@f49aabe0b5af0936a0987cfb85d86b75731b0186 # 2.4.1
-#         with:
-#           results_file: results.sarif
-#           results_format: sarif
-#           publish_results: true
-#           internal_publish_base_url: "https://api-staging.scorecard.dev"
-#       - name: "Upload artifact"
-#         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # 4.6.2
-#         with:
-#           name: SARIF file
-#           path: results.sarif
-#           retention-days: 5
-#       - name: "Upload to code-scanning"
-#         uses: github/codeql-action/upload-sarif@45775bd8235c68ba998cffa5171334d58593da47 # 3.28.15
-#         with:
-#           sarif_file: results.sarif
+  scorecards-analysis:
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      id-token: write
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # 4.2.2
+        with:
+          persist-credentials: false
+      - name: "Run analysis"
+        uses: ossf/scorecard-action@f49aabe0b5af0936a0987cfb85d86b75731b0186 # 2.4.1
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: true
+          internal_publish_base_url: "https://api-staging.scorecard.dev"
+      - name: "Upload artifact"
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # 4.6.2
+        with:
+          name: SARIF file
+          path: results.sarif
+          retention-days: 5
+      - name: "Upload to code-scanning"
+        uses: github/codeql-action/upload-sarif@45775bd8235c68ba998cffa5171334d58593da47 # 3.28.15
+        with:
+          sarif_file: results.sarif
 
-#   trufflehog-scan:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - uses: actions/checkout@v4
-#       - name: Run TruffleHog
-#         uses: trufflesecurity/trufflehog@v3.90.8
-#         with:
-#           directory: .
-#           json: true
-#           redact: true
-#       - name: Upload TruffleHog results
-#         if: always()
-#         uses: actions/upload-artifact@v4
-#         with:
-#           name: trufflehog-results
-#           path: trufflehog-results.json
+  trufflehog-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run TruffleHog
+        uses: trufflesecurity/trufflehog@v3.90.8
+        with:
+          directory: .
+          json: true
+          redact: true
+      - name: Upload TruffleHog results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trufflehog-results
+          path: trufflehog-results.json

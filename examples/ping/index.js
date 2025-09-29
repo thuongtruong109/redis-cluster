@@ -13,7 +13,6 @@ async function main() {
       console.log(`🔌 Connecting to ${node.host}:${node.port}`);
       const pong = await client.ping();
       console.log(`✅ ${node.host}:${node.port} PONG=${pong}`);
-
       const info = await client.info();
       console.log(`ℹ️ ${node.host}:${node.port} INFO:\n`, info);
     } catch (err) {

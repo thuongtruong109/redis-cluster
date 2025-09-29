@@ -111,7 +111,7 @@ clt-bench:
 	docker build -f configs/cluster/Dockerfile.bench -t $(CLT_BENCH_IMAGE) .
 	docker run --rm \
 		--network $(REDIS_NETWORK) \
-		-v $$(pwd)/$(CLT_BENCH_DIR):/benchmark-results \
+		-v $$(pwd)/$(CLT_BENCH_DIR):/results \
 		-e REDIS_PASSWORD=$${REDIS_PASSWORD} \
 		-e REDIS_HOST=node-1 \
 		$(CLT_BENCH_IMAGE)
@@ -143,18 +143,19 @@ clean:
 ci:
 	act -W .github/workflows/ci.yml --rm --pull=false --secret DOCKER_USERNAME= --secret DOCKER_PASSWORD=
 
+
 demo-ping:
 # 	docker compose -f docker-compose.cluster.dev.yml up -d --build --force-recreate node-1 node-2 node-3 node-4 node-5 node-6
 # 	docker exec -it node-1 redis-cli -a $(REDIS_PASSWORD) --cluster create 127.0.0.1:6379 127.0.0.1:6380 127.0.0.1:6381 127.0.0.1:6382 127.0.0.1:6383 127.0.0.1:6384 --cluster-replicas 1 --cluster-yes
 
-	docker run --rm -it --network host redis:7.2 \
-		redis-cli -a "$$REDIS_PASSWORD" --cluster create \
-		127.0.0.1:6379 \
-		127.0.0.1:6380 \
-		127.0.0.1:6381 \
-		127.0.0.1:6382 \
-		127.0.0.1:6383 \
-		127.0.0.1:6384 \
-		--cluster-replicas 1 --cluster-yes
+# 	docker run --rm -it --network host redis:7.2 \
+# 		redis-cli -a "$$REDIS_PASSWORD" --cluster create \
+# 		127.0.0.1:6379 \
+# 		127.0.0.1:6380 \
+# 		127.0.0.1:6381 \
+# 		127.0.0.1:6382 \
+# 		127.0.0.1:6383 \
+# 		127.0.0.1:6384 \
+# 		--cluster-replicas 1 --cluster-yes
 
 	cd examples/ping && npm run dev
