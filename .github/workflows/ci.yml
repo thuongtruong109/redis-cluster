@@ -280,24 +280,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # - name: Verify Docker
-      #   run: |
-      #     which docker
-      #     docker --version
-      #     docker info
-
-      # - name: Install redis-benchmark and memtier_benchmark
-      #   run: |
-      #     sudo apt-get update
-      #     sudo apt-get install -y redis-tools bc build-essential autoconf automake libpcre3-dev libevent-dev pkg-config zlib1g-dev git
-
-      #     git clone https://github.com/RedisLabs/memtier_benchmark.git
-      #     cd memtier_benchmark
-      #     autoreconf -ivf
-      #     ./configure
-      #     make
-      #     sudo make install
-
       - name: Start Redis Cluster
         run: |
           make clt
