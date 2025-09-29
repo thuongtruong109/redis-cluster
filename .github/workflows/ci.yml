@@ -286,13 +286,11 @@ jobs:
           docker --version
           docker info
 
-      - name: Install redis-benchmark and dependencies
+      - name: Install redis-benchmark and memtier_benchmark
         run: |
           sudo apt-get update
           sudo apt-get install -y redis-tools bc build-essential autoconf automake libpcre3-dev libevent-dev pkg-config zlib1g-dev git
 
-      - name: Install memtier_benchmark
-        run: |
           git clone https://github.com/RedisLabs/memtier_benchmark.git
           cd memtier_benchmark
           autoreconf -ivf
@@ -327,10 +325,9 @@ jobs:
           docker run --rm \
             --network redisnet \
             -v $PWD/results:/results \
-            -e CLUSTER_PASS=$REDIS_PASSWORD \
-            -e RESULT_DIR=/results \
+
             thuongtruong1009/reluster:latest \
-            ./scripts/clt-bench.sh
+            ./test/clt-bench.sh
 
       - name: Upload benchmark results
         uses: actions/upload-artifact@v4
