@@ -1,16 +1,24 @@
+version: "3.9"
+
+networks:
+  redisnet:
+    driver: bridge
+
 x-redis-base: &redis-base
-  image: thuongtruong1009/reluster:latest
+  image: redis-cluster:latest
   build:
     context: .
     dockerfile: ./configs/cluster/Dockerfile
+  networks:
+    - redisnet
+  environment:
+    REDIS_PASSWORD: ${REDIS_PASSWORD} # password chung
   healthcheck:
-    test: ["CMD", "redis-cli", "-a", "redispw", "ping"]
+    test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
     interval: 10s
     timeout: 5s
     retries: 5
     start_period: 10s
-  networks:
-    - redisnet
 
 services:
   node-1:
@@ -18,79 +26,71 @@ services:
     container_name: node-1
     hostname: node-1
     environment:
-      - REDIS_HOST=node-1
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-    ports:
-      - "7001:6379"
-      - "17001:16379"
+      REDIS_PASSWORD: ${REDIS_PASSWORD} # merge password từ base
+      REDIS_HOST: node-1
 
   node-2:
     <<: *redis-base
     container_name: node-2
     hostname: node-2
     environment:
-      - REDIS_HOST=node-2
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-    ports:
-      - "7002:6379"
-      - "17002:16379"
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_HOST: node-2
 
   node-3:
     <<: *redis-base
     container_name: node-3
     hostname: node-3
     environment:
-      - REDIS_HOST=node-3
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-    ports:
-      - "7003:6379"
-      - "17003:16379"
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_HOST: node-3
 
   node-4:
     <<: *redis-base
     container_name: node-4
     hostname: node-4
     environment:
-      - REDIS_HOST=node-4
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-    ports:
-      - "7004:6379"
-      - "17004:16379"
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_HOST: node-4
 
   node-5:
     <<: *redis-base
     container_name: node-5
     hostname: node-5
     environment:
-      - REDIS_HOST=node-5
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-    ports:
-      - "7005:6379"
-      - "17005:16379"
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_HOST: node-5
 
   node-6:
     <<: *redis-base
     container_name: node-6
     hostname: node-6
     environment:
-      - REDIS_HOST=node-6
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-    ports:
-      - "7006:6379"
-      - "17006:16379"
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_HOST: node-6
 
-  node-7:
+  node-7: # failover / future replica
     <<: *redis-base
     container_name: node-7
     hostname: node-7
     environment:
-      - REDIS_HOST=node-7
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-    ports:
-      - "7007:6379"
-      - "17007:16379"
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_HOST: node-7
 
-networks:
-  redisnet:
-    name: redisnet
-    driver: bridge
+  benchmark:
+    <<: *redis-base
+    container_name: benchmark
+    entrypoint: ["./tests/clt-bench.sh"]
+    networks:
+      - redisnet
+    environment:
+      CLUSTER_PASS: ${REDIS_PASSWORD}
+    volumes:
+      - ./results:/results
+    depends_on:
+      - node-1
+      - node-2
+      - node-3
+      - node-4
+      - node-5
+      - node-6
