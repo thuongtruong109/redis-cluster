@@ -339,7 +339,7 @@ jobs:
       - name: Collect Results
         run: |
           mkdir -p results
-          docker cp $(docker-compose -f docker-compose.cluster.yml ps -q benchmark):/results ./results
+          docker cp $(docker compose -f docker-compose.cluster.yml ps -q benchmark):/results ./results
           ls -lah results
 
   # notify:
