@@ -124,14 +124,8 @@ clt-bench:
 # 		-e REDIS_HOST=node-1 \
 # 		$(CLT_BENCH_IMAGE)
 
-# 	docker compose -f $(CLT_COMPOSE_FILE) run --rm \
-# 		-e CLUSTER_PASS=$${REDIS_PASSWORD} \
-# 		-e REDIS_HOST=node-1 \
-# 		-v $$(pwd)/$(CLT_BENCH_DIR):/benchmark-results \
-# 		benchmark
-
-	docker compose -f $(CLT_COMPOSE_FILE) up -d benchmark
-	CLUSTER_PASS=$(REDIS_PASSWORD) RESULT_DIR=$(CLT_BENCH_DIR) bash ./tests/clt-bench.sh
+	docker compose -f $(CLT_COMPOSE_FILE) up -d --build benchmark
+	docker compose -f $(CLT_COMPOSE_FILE) exec -T benchmark CLUSTER_PASS=$(REDIS_PASSWORD) RESULT_DIR=/benchmark-results bash /app/tests/clt-bench.sh
 
 clt-rollback:
 	chmod +x scripts/clt-rollback.sh

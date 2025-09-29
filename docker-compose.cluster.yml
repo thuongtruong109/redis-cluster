@@ -11,7 +11,7 @@ x-redis-base: &redis-base
   networks:
     - redisnet
   environment:
-    REDIS_PASSWORD: ${REDIS_PASSWORD} # password chung
+    REDIS_PASSWORD: ${REDIS_PASSWORD}
   healthcheck:
     test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
     interval: 10s

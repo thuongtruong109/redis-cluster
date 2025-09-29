@@ -1,28 +1,25 @@
 FROM ubuntu:22.04
 
-RUN apt-get update && apt-get install -y \
-    redis-tools \
-    bc \
-    build-essential \
-    autoconf \
-    automake \
-    libpcre3-dev \
-    libevent-dev \
-    pkg-config \
-    zlib1g-dev \
-    git \
-    libtool \
-    m4 \
-    perl \
-    curl \
-    wget \
-    unzip \
-    bison \
-    sudo \
-    libssl-dev && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && \
+    apt-get install -y \
+        redis-tools \
+        bc \
+        build-essential \
+        autoconf \
+        automake \
+        libpcre3-dev \
+        libevent-dev \
+        pkg-config \
+        zlib1g-dev \
+        libssl-dev \
+        git \
+        wget \
+        curl \
+        && rm -rf /var/lib/apt/lists/*
 
-RUN git clone https://github.com/RedisLabs/memtier_benchmark.git /memtier_benchmark
+RUN git clone https://github.com/RedisLabs/memtier_benchmark.git /memtier_benchmark && \
+    cd /memtier_benchmark && autoreconf -ivf && ./configure && make && make install && \
+    rm -rf /memtier_benchmark
 
 WORKDIR /memtier_benchmark
 RUN autoreconf -ivf
@@ -33,5 +30,4 @@ RUN rm -rf /memtier_benchmark
 WORKDIR /app
 COPY tests/clt-bench.sh /app/tests/clt-bench.sh
 RUN chmod +x /app/tests/clt-bench.sh
-CMD ["bash", "/app/tests/clt-bench.sh"]
-# ENTRYPOINT ["/app/tests/clt-bench.sh"]
+ENTRYPOINT ["/app/tests/clt-bench.sh"]
