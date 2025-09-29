@@ -273,7 +273,7 @@ jobs:
   cluster-performance-tests:
     runs-on: ubuntu-latest
     # needs: [cluster-integration-tests]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     env:
       REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
     steps:
