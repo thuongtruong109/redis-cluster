@@ -327,13 +327,19 @@ jobs:
             -v $PWD/results:/results \
 
             thuongtruong1009/reluster:latest \
-            ./test/clt-bench.sh
+            ./tests/clt-bench.sh
 
       - name: Upload benchmark results
         uses: actions/upload-artifact@v4
         with:
           name: redis-benchmark-results
           path: ./results
+
+      - name: Collect Results
+        run: |
+          mkdir -p results
+          docker cp $(docker-compose -f docker-compose.clt.yml ps -q benchmark):/results ./results
+          ls -lah results
 
   # notify:
   #   runs-on: ubuntu-latest
