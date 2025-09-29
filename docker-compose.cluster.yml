@@ -5,7 +5,7 @@ networks:
     driver: bridge
 
 x-redis-base: &redis-base
-  image: redis-cluster:latest
+  image: thuongtruong1009/reluster:latest
   build:
     context: .
     dockerfile: ./configs/cluster/Dockerfile
