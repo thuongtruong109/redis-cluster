@@ -2,6 +2,7 @@ version: "3.9"
 
 networks:
   redisnet:
+    name: redisnet
     driver: bridge
 
 x-redis-base: &redis-base
