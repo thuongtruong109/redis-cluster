@@ -79,15 +79,16 @@ services:
       REDIS_HOST: node-7
 
   benchmark:
-    <<: *redis-base
+    image: thuongtruong1009/reluster-bench:latest
     container_name: benchmark
-    entrypoint: ["./tests/clt-bench.sh"]
+    build:
+      context: .
+      dockerfile: ./configs/cluster/Dockerfile.bench
+    environment:
+      - CLUSTER_PASS=${REDIS_PASSWORD}
+      - REDIS_HOST=node-1
     networks:
       - redisnet
-    environment:
-      # CLUSTER_PASS: ${REDIS_PASSWORD}
-      REDIS_HOST: node-1
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
     volumes:
       - ./results:/results
     depends_on:

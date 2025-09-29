@@ -322,7 +322,7 @@ jobs:
 
       - name: Run cluster performance benchmarks
         run: |
-          docker run --rm --network redisnet -v $PWD/results:/results -e REDIS_PASSWORD=${REDIS_PASSWORD} -e REDIS_HOST=node-1 thuongtruong1009/reluster:latest bash -c './tests/clt-bench.sh'
+          docker compose -f docker-compose.cluster.yml run --rm benchmark
 
       - name: Upload benchmark results
         uses: actions/upload-artifact@v4
@@ -333,7 +333,7 @@ jobs:
       - name: Collect Results
         run: |
           mkdir -p results
-          docker cp $(docker-compose -f docker-compose.clt.yml ps -q benchmark):/results ./results
+          docker cp $(docker-compose -f docker-compose.cluster.yml ps -q benchmark):/results ./results
           ls -lah results
 
   # notify:
