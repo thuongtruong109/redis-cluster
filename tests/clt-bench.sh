@@ -2,11 +2,8 @@
 set -euo pipefail
 
 NODE_HOSTS="node-1:6379,node-2:6379,node-3:6379,node-4:6379,node-5:6379,node-6:6379"
-# NODE_HOSTS="127.0.0.1:7001,127.0.0.1:7002,127.0.0.1:7003,127.0.0.1:7004,127.0.0.1:7005,127.0.0.1:7006"
 
 : "${CLUSTER_PASS:=${REDIS_PASSWORD:?Need CLUSTER_PASS env var}}"
-
-# Nếu REDIS_HOST chưa set, mặc định tới node-1
 : "${REDIS_HOST:=node-1}"
 
 RESULT_DIR=${RESULT_DIR:-/results}

@@ -109,8 +109,17 @@ clt-test:
 
 # current only support on CI
 clt-bench:
-	chmod +x tests/clt-bench.sh
-	CLUSTER_PASS=$(REDIS_PASSWORD) RESULT_DIR=$(CLT_BENCH_DIR) bash ./tests/clt-bench.sh
+# 	chmod +x tests/clt-bench.sh
+# 	CLUSTER_PASS=$(REDIS_PASSWORD) RESULT_DIR=$(CLT_BENCH_DIR) bash ./tests/clt-bench.sh
+
+	docker build -f configs/cluster/Dockerfile.bench -t $(BENCH_IMAGE) .
+	mkdir -p $(RESULT_DIR)
+	docker run --rm \
+		--network $(REDIS_NETWORK) \
+		-v $$(pwd)/$(RESULT_DIR):/results \
+		-e REDIS_PASSWORD=$${REDIS_PASSWORD} \
+		-e REDIS_HOST=node-1 \
+		$(BENCH_IMAGE)
 
 clt-rollback:
 	chmod +x scripts/clt-rollback.sh
