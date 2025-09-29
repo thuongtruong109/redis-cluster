@@ -130,7 +130,7 @@ clt-bench:
 # 		-v $$(pwd)/$(CLT_BENCH_DIR):/benchmark-results \
 # 		benchmark
 
-	docker compose -f $(CLT_COMPOSE_FILE) benchmark
+	docker compose -f $(CLT_COMPOSE_FILE) benchmark up -d "REDIS_PASSWORD=$$REDIS_PASSWORD REDIS_HOST=node-1 ./tests/clt-bench.sh"
 
 clt-rollback:
 	chmod +x scripts/clt-rollback.sh
