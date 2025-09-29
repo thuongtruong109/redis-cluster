@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 set -e
 
-# if [ -z "${REDIS_HOST:-}" ]; then
-#     REDIS_HOST="127.0.0.1" # REDIS_HOST not set, defaulting to 127.0.0.1
-# fi
+if [ -z "${REDIS_HOST:-}" ]; then
+    REDIS_HOST=$(hostname -i)
+else
+    echo "Using REDIS_HOST from environment: $REDIS_HOST"
+fi
 
 export REDIS_HOST
 
