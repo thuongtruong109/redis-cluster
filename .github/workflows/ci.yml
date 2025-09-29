@@ -322,7 +322,7 @@ jobs:
 
       - name: Run cluster performance benchmarks
         run: |
-          docker run --rm --network redisnet -v $PWD/results:/results thuongtruong1009/reluster:latest ./tests/clt-bench.sh
+          docker run --rm --network redisnet -v $PWD/results:/results -e REDIS_PASSWORD=${REDIS_PASSWORD} thuongtruong1009/reluster:latest ./tests/clt-bench.sh
 
       - name: Upload benchmark results
         uses: actions/upload-artifact@v4
