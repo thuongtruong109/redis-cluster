@@ -1,23 +1,4 @@
-FROM ubuntu:22.04 AS builder
-
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        build-essential autoconf automake libtool \
-        libpcre3-dev libevent-dev pkg-config zlib1g-dev libssl-dev wget unzip && \
-    rm -rf /var/lib/apt/lists/*
-
-WORKDIR /tmp
-ENV MEMTIER_VERSION=2.2.0
-
-RUN wget -q https://github.com/RedisLabs/memtier_benchmark/archive/refs/tags/${MEMTIER_VERSION}.tar.gz -O memtier.tar.gz && \
-    tar -xzf memtier.tar.gz && \
-    cd memtier_benchmark-${MEMTIER_VERSION} && \
-    autoreconf -ivf && \
-    ./configure --prefix=/usr/local && \
-    make && \
-    make install
-
-FROM ubuntu:22.04
+FROM redislabs/memtier_benchmark:2.2.0
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends redis-tools && \
@@ -31,8 +12,6 @@ WORKDIR /app
 
 COPY tests/clt-bench.sh /app/tests/clt-bench.sh
 RUN chmod +x /app/tests/clt-bench.sh && chown -R bench:bench /app
-
-COPY --from=builder /usr/local/bin/memtier_benchmark /usr/local/bin/memtier_benchmark
 
 USER bench
 
