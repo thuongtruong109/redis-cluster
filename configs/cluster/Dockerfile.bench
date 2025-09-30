@@ -1,31 +1,34 @@
-FROM ubuntu:22.04@sha256:4e0171b9275e12d375863f2b3ae9ce00a4c53ddda176bd55868f
+FROM ubuntu:22.04 AS builder
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        ca-certificates \
-        redis-tools bc build-essential autoconf automake \
-        libpcre3-dev libevent-dev pkg-config zlib1g-dev libssl-dev wget unzip && \
-    update-ca-certificates && \
+        build-essential autoconf automake libpcre3-dev libevent-dev pkg-config zlib1g-dev libssl-dev wget unzip && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /tmp
 ENV MEMTIER_VERSION=2.1.0
+
 RUN wget -q https://github.com/RedisLabs/memtier_benchmark/archive/refs/tags/${MEMTIER_VERSION}.tar.gz -O memtier.tar.gz && \
     tar -xzf memtier.tar.gz && \
     cd memtier_benchmark-${MEMTIER_VERSION} && \
-    autoreconf -ivf && \
-    ./configure && \
-    make && \
-    make install && \
-    cd / && rm -rf /tmp/*
+    autoreconf -ivf && ./configure && make
+
+FROM ubuntu:22.04
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends redis-tools && \
+    rm -rf /var/lib/apt/lists/*
 
 RUN groupadd -r bench && useradd -r -g bench bench
 
 RUN mkdir -p /app /results && chown -R bench:bench /app /results
 
 WORKDIR /app
+
 COPY tests/clt-bench.sh /app/tests/clt-bench.sh
 RUN chmod +x /app/tests/clt-bench.sh && chown -R bench:bench /app
+
+COPY --from=builder /tmp/memtier_benchmark-2.1.0/memtier_benchmark /usr/local/bin/memtier_benchmark
 
 USER bench
 
