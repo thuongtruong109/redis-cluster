@@ -280,26 +280,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Verify Docker
-        run: |
-          which docker
-          docker --version
-          docker info
-
-      - name: Install redis-benchmark and dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y redis-tools bc build-essential autoconf automake libpcre3-dev libevent-dev pkg-config zlib1g-dev git
-
-      - name: Install memtier_benchmark
-        run: |
-          git clone https://github.com/RedisLabs/memtier_benchmark.git
-          cd memtier_benchmark
-          autoreconf -ivf
-          ./configure
-          make
-          sudo make install
-
       - name: Start Redis Cluster
         run: |
           make clt
@@ -312,13 +292,12 @@ jobs:
         run: make clt-bench
 
       - name: Upload benchmark results
-        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: cluster-bench-results
-          path: benchmark-results/*
+          name: redis-benchmark-results
+          path: ./benchmark-results
 
-      - name: Cleanup performance test
+      - name: Shutdown cluster services
         if: always()
         run: make clean
 
@@ -344,22 +323,22 @@ jobs:
         if: ${{ contains(needs.*.result, 'failure') }}
         run: echo "❌ One or more jobs failed! Check the logs for details."
 
-      # - name: Notify on success
-      #   if: ${{ needs.replica-integration-tests.result != 'failure' &&
-      #            needs.replica-performance-tests.result != 'failure' &&
-      #            needs.replica-security-scan.result != 'failure' &&
-      #            needs.cluster-health-check.result != 'failure' &&
-      #            needs.cluster-integration-tests.result != 'failure' &&
-      #            needs.cluster-performance-tests.result != 'failure' &&
-      #            needs.cluster-security-scan.result != 'failure' }}
-      #   run: echo "✅ All jobs passed! Redis cluster and replica are healthy."
+  # - name: Notify on success
+  #   if: ${{ needs.replica-integration-tests.result != 'failure' &&
+  #            needs.replica-performance-tests.result != 'failure' &&
+  #            needs.replica-security-scan.result != 'failure' &&
+  #            needs.cluster-health-check.result != 'failure' &&
+  #            needs.cluster-integration-tests.result != 'failure' &&
+  #            needs.cluster-performance-tests.result != 'failure' &&
+  #            needs.cluster-security-scan.result != 'failure' }}
+  #   run: echo "✅ All jobs passed! Redis cluster and replica are healthy."
 
-      # - name: Notify on failure
-      #   if: ${{ needs.replica-integration-tests.result == 'failure' ||
-      #            needs.replica-performance-tests.result == 'failure' ||
-      #            needs.replica-security-scan.result == 'failure' ||
-      #            needs.cluster-health-check.result == 'failure' ||
-      #            needs.cluster-integration-tests.result == 'failure' ||
-      #            needs.cluster-performance-tests.result == 'failure' ||
-      #            needs.cluster-security-scan.result == 'failure' }}
-      #   run: echo "❌ One or more jobs failed! Check the logs for details."
+  # - name: Notify on failure
+  #   if: ${{ needs.replica-integration-tests.result == 'failure' ||
+  #            needs.replica-performance-tests.result == 'failure' ||
+  #            needs.replica-security-scan.result == 'failure' ||
+  #            needs.cluster-health-check.result == 'failure' ||
+  #            needs.cluster-integration-tests.result == 'failure' ||
+  #            needs.cluster-performance-tests.result == 'failure' ||
+  #            needs.cluster-security-scan.result == 'failure' }}
+  #   run: echo "❌ One or more jobs failed! Check the logs for details."

@@ -34,15 +34,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 🏗️ Build & Push Cluster Image
-        run: |
-          docker compose -f docker-compose.cluster.yml build --progress=plain
-
-          docker tag thuongtruong1009/${{ env.IMAGE_NAME }}:latest \
-            ${{ env.REGISTRY }}/${{ github.repository }}/cluster:latest
-
-          docker push ${{ env.REGISTRY }}/${{ github.repository }}/cluster:latest
-
       - name: 🏗️ Build & Push HA Images
         run: |
           docker compose -f docker-compose.ha.yml build --progress=plain
@@ -54,3 +45,21 @@ jobs:
 
           docker push ${{ env.REGISTRY }}/${{ github.repository }}/ha-replica:latest
           docker push ${{ env.REGISTRY }}/${{ github.repository }}/ha-sentinel:latest
+
+      - name: 🏗️ Build & Push Cluster Image
+        run: |
+          docker compose -f docker-compose.cluster.yml build --progress=plain
+
+          docker tag thuongtruong1009/${{ env.IMAGE_NAME }}:latest \
+            ${{ env.REGISTRY }}/${{ github.repository }}:latest
+
+          docker push ${{ env.REGISTRY }}/${{ github.repository }}:latest
+
+      - name: 🏗️ Build & Push Cluster Benchmark Image
+        run: |
+          docker compose -f docker-compose.cluster.yml build --progress=plain
+
+          docker tag thuongtruong1009/${{ env.IMAGE_NAME }}:latest \
+            ${{ env.REGISTRY }}/${{ github.repository }}-bench:latest
+
+          docker push ${{ env.REGISTRY }}/${{ github.repository }}-bench:latest

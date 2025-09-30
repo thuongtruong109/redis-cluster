@@ -3,7 +3,7 @@ set -e
 
 REDIS_PORT=6379
 CHECK_INTERVAL=5
-TOTAL_NODES=6           # initial nodes (node-1..node-6)
+TOTAL_NODES=6
 
 get_nodes() {
   docker ps --format '{{.Names}}' | grep node- | xargs -I {} echo "{}:$REDIS_PORT"
