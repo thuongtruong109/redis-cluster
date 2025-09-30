@@ -10,6 +10,8 @@ REDIS_PASSWORD=redispw
 CLT_BENCH_IMAGE=thuongtruong1009/reluster-bench:latest
 REDIS_NETWORK=redisnet
 
+LOG_DIR=monitor-logs
+
 format:
 	@dos2unix Makefile
 	@sed -i 's/\r$$//' Makefile configs/ha/sentinel/sentinel.conf configs/ha/replica/slave.conf configs/ha/replica/master.conf configs/cluster/node.conf
@@ -126,7 +128,7 @@ clean:
 	docker compose -f $(TOOL_COMPOSE_FILE) down -v
 	docker volume prune -f
 	rm -rf $(CLT_BENCH_DIR)
-	rm -rf monitor-logs
+	rm -rf $(LOG_DIR)
 
 # 	Flags: -j <job_name>
 ci:
@@ -150,19 +152,7 @@ monitor:
 
 monitor-health:
 	chmod +x scripts/monitor.sh
-	bash ./scripts/monitor.sh
-
-monitor-log:
-	mkdir -p monitor-logs
-	docker compose logs node-1 > monitor-logs/node-1.log 2>&1 || true
-	docker compose logs node-2 > monitor-logs/node-2.log 2>&1 || true
-	docker compose logs node-3 > monitor-logs/node-3.log 2>&1 || true
-	docker compose logs node-4 > monitor-logs/node-4.log 2>&1 || true
-	docker compose logs node-5 > monitor-logs/node-5.log 2>&1 || true
-	docker compose logs node-6 > monitor-logs/node-6.log 2>&1 || true
-	docker compose logs exporter > monitor-logs/exporter.log 2>&1 || true
-	docker compose logs prometheus > monitor-logs/prometheus.log 2>&1 || true
-	docker compose logs grafana > monitor-logs/grafana.log 2>&1 || true
+	LOG_DIR=$(LOG_DIR) bash ./scripts/monitor.sh
 
 demo-ping:
 # 	docker compose -f docker-compose.cluster.dev.yml up -d --build --force-recreate node-1 node-2 node-3 node-4 node-5 node-6

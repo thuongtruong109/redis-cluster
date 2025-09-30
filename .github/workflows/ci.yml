@@ -343,15 +343,6 @@ jobs:
       - name: Run monitor health check
         run: make monitor-health
 
-      - name: Collect Logs
-        run: make monitor-log
-
-      - name: Upload Logs as Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: docker-logs
-          path: monitor-logs/
-
       - name: Shutdown cluster services
         if: always()
         run: make clean

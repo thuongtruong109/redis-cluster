@@ -11,7 +11,7 @@
 
    <img src="./.github/assets/banner.webp" alt="Redis Cluster Banner" />
 
-   <p><b>A complete, ready-to-run Redis Sentinel & Cluster playground with Docker Compose for <br/> learning, testing, and deploying Redis in real-world scenarios.</b></p>
+   <p>A complete, ready-to-run Redis Sentinel & Cluster playground with Docker Compose for <br/> learning, testing, and deploying Redis in real-world scenarios.</p>
 </div>
 
 ## 📝 Overview
@@ -26,7 +26,7 @@ This project provides a **hands-on Redis lab** that covers both **Sentinel** and
 ## ✨ Features
 
 - ✔ Quick Bootstrap – Start Sentinel & Cluster in seconds with Docker Compose
-- ✔ Automation Scripts – Health checks, failover tests, backups, slot rebalancing
+- ✔ Automation Scripts – Health checks, failover tests, rollback, backups, slot rebalancing, integrity, and security scan
 - ✔ CI/CD Ready – GitHub Actions/GitLab CI for automated testing & deployment
 - ✔ Configurable – Easily adjust number of nodes, replicas, memory limits, persistence
 - ✔ Comprehensive Docs – Setup guides, architecture explanations, usage examples
@@ -35,11 +35,12 @@ This project provides a **hands-on Redis lab** that covers both **Sentinel** and
 - ✔ Backup & Restore – Automated backup scripts and restore procedures
 - ✔ Failover Testing – Simulate node failures and observe automatic recovery
 - ✔ Scaling – Add/remove nodes and reshard data with minimal downtime
+- ✔ Monitoring Stack - Redis-Commander, Redis-Exporter, Prometheus, Grafana for real-time insights
 
 <!-- - ✔ Security – Basic auth, TLS setup examples -->
 <!-- - ✔ Multi-Platform – Works on Linux, macOS, Windows (WSL2/Docker Desktop) -->
 <!-- - ✔ Web UIs – Redis Commander, RedisInsight for easy data management & monitoring -->
-<!-- - ✔ Monitoring Stack – RedisInsight, Redis Commander, Prometheus, Grafana, Alerts (Slack/Email/Telegram)
+<!-- - Alerts (Slack/Email/Telegram)
 - ✔ Real-World Demos – Integration with Node.js, Python, Java, Go, etc. (caching, pub/sub, queues, sessions)
 - ✔ Advanced Guides – Kubernetes (Helm, StatefulSet, Operator), Cloud Backup/Restore, TLS/Security -->
 
@@ -52,7 +53,7 @@ This project provides a **hands-on Redis lab** that covers both **Sentinel** and
 
 ## 🏗️ Architecture
 
-### 🔹 Sentinel Mode (HA + Failover)
+### 🔹 Sentinel Mode (HA + Replica Failover)
 
 ```mermaid
 flowchart TD
@@ -68,6 +69,33 @@ flowchart TD
    S3 --> M
    M --> R1
    M --> R2
+```
+
+```mermaid
+flowchart LR
+    %% Before failover
+    subgraph Left["Before Failover"]
+        direction TB
+        Sentinel1(Sentinel) --> Master1
+        Sentinel2(Sentinel) --> Master1
+        Sentinel3(Sentinel) --> Master1
+
+        Master1([Master]) --> Slave1([Slave])
+        Master1 --> Slave2([Slave])
+    end
+
+    %% After failover
+    subgraph Right["After Failover"]
+        direction TB
+        Sentinel4(Sentinel) --> NewMaster
+        Sentinel5(Sentinel) --> NewMaster
+        Sentinel6(Sentinel) --> NewMaster
+
+        OldMaster([Master Down]) --> Slave2([Slave])
+        NewMaster([New Master]) --> Slave2
+    end
+
+    Left --> Right
 ```
 
 ### 🔹 Cluster Mode (Sharding + Replication)

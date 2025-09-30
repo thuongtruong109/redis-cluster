@@ -13,3 +13,4 @@ dist/
 
 playground
 .rollback-state.json
+tools/grafana/data
