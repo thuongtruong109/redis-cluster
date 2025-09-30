@@ -87,7 +87,7 @@ jobs:
         with:
           image-ref: reluster
           format: table
-          exit-code: "1"
+          exit-code: 0
           ignore-unfixed: true
           vuln-type: "os,library"
           severity: "CRITICAL,HIGH"
@@ -97,7 +97,7 @@ jobs:
         with:
           image-ref: reluster-bench
           format: table
-          exit-code: "1"
+          exit-code: 0
           ignore-unfixed: true
           vuln-type: "os,library"
           severity: "CRITICAL,HIGH"

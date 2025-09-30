@@ -1,4 +1,4 @@
-FROM ubuntu:22.04@sha256:4e0171b9275e12d375863f2b3ae9ce00a4c53ddda176bd55868df97ac6f21a6e
+FROM ubuntu:22.04@sha256:4e0171b9275e12d375863f2b3ae9ce00a4c53ddda176bd55868f
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -20,6 +20,9 @@ RUN wget -q https://github.com/RedisLabs/memtier_benchmark/archive/refs/tags/${M
     cd / && rm -rf /tmp/*
 
 RUN groupadd -r bench && useradd -r -g bench bench
+
+RUN mkdir -p /app /results && chown -R bench:bench /app /results
+
 WORKDIR /app
 COPY tests/clt-bench.sh /app/tests/clt-bench.sh
 RUN chmod +x /app/tests/clt-bench.sh && chown -R bench:bench /app

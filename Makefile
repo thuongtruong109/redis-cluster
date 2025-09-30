@@ -108,6 +108,7 @@ clt-test:
 
 clt-bench:
 	mkdir -p $(CLT_BENCH_DIR)
+	chmod 777 $(CLT_BENCH_DIR)
 	docker build -f configs/cluster/Dockerfile.bench -t $(CLT_BENCH_IMAGE) .
 	docker run --rm \
 		--network $(REDIS_NETWORK) \
