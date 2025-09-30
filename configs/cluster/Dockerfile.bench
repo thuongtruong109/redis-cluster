@@ -1,7 +1,8 @@
-FROM ubuntu:22.04
+FROM ubuntu:22.04@sha256:4e0171b9275e12d375863f2b3ae9ce00a4c53ddda176bd55868df97ac6f21a6e
 
 RUN apt-get update && \
-    apt-get install -y redis-tools bc build-essential autoconf automake \
+    apt-get install -y --no-install-recommends \
+        redis-tools bc build-essential autoconf automake \
         libpcre3-dev libevent-dev pkg-config zlib1g-dev git libssl-dev wget unzip && \
     rm -rf /var/lib/apt/lists/*
 
@@ -14,7 +15,13 @@ RUN git clone https://github.com/RedisLabs/memtier_benchmark.git /memtier_benchm
     make install && \
     rm -rf /memtier_benchmark
 
+RUN groupadd -r bench && useradd -r -g bench bench
 WORKDIR /app
 COPY tests/clt-bench.sh /app/tests/clt-bench.sh
-RUN chmod +x /app/tests/clt-bench.sh
+RUN chmod +x /app/tests/clt-bench.sh && chown -R bench:bench /app
+
+USER bench
+
 ENTRYPOINT ["/app/tests/clt-bench.sh"]
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 CMD pgrep memtier_benchmark || exit 1

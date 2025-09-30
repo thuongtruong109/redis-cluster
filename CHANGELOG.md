@@ -14,6 +14,7 @@
 - compose: Dynamic binding hostname to cluster node
 - Automatically scale out/in and re-balance nodes
 - using container names and network in Redis Cluster benchmarks CI tests
+- dockerfile: harden Dockerfile.bench with best practices
 
 ### 🛠️ CI/CD
 

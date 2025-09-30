@@ -62,6 +62,29 @@ jobs:
           sarif_file: hadolint-results.sarif
           wait-for-processing: true
 
+  docker-build-and-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        run: |
+          docker build -t thuongtruong1009/reluster-bench -f configs/cluster/Dockerfile.bench .
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          image-ref: thuongtruong1009/reluster-bench
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+          vuln-type: "os,library"
+          severity: "CRITICAL,HIGH"
+
   scorecards-analysis:
     runs-on: ubuntu-latest
     permissions:
