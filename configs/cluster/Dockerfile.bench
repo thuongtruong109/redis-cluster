@@ -2,18 +2,22 @@ FROM ubuntu:22.04@sha256:4e0171b9275e12d375863f2b3ae9ce00a4c53ddda176bd55868df97
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
+        ca-certificates \
         redis-tools bc build-essential autoconf automake \
-        libpcre3-dev libevent-dev pkg-config zlib1g-dev git libssl-dev wget unzip && \
+        libpcre3-dev libevent-dev pkg-config zlib1g-dev libssl-dev wget unzip && \
+    update-ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /tmp
-RUN git clone https://github.com/RedisLabs/memtier_benchmark.git /memtier_benchmark && \
-    cd /memtier_benchmark && \
+ENV MEMTIER_VERSION=2.1.0
+RUN wget -q https://github.com/RedisLabs/memtier_benchmark/archive/refs/tags/${MEMTIER_VERSION}.tar.gz -O memtier.tar.gz && \
+    tar -xzf memtier.tar.gz && \
+    cd memtier_benchmark-${MEMTIER_VERSION} && \
     autoreconf -ivf && \
     ./configure && \
     make && \
     make install && \
-    rm -rf /memtier_benchmark
+    cd / && rm -rf /tmp/*
 
 RUN groupadd -r bench && useradd -r -g bench bench
 WORKDIR /app

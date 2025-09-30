@@ -62,7 +62,7 @@ jobs:
           sarif_file: hadolint-results.sarif
           wait-for-processing: true
 
-  docker-build-and-scan:
+  vulnerability-scan:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -71,14 +71,31 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Cache Trivy database
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/trivy
+          key: ${{ runner.os }}-trivy
+
       - name: Build Docker image
         run: |
-          docker build -t thuongtruong1009/reluster-bench -f configs/cluster/Dockerfile.bench .
+          docker build -f configs/cluster/Dockerfile -t reluster .
+          docker build -f configs/cluster/Dockerfile.bench -t reluster-bench .
 
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.20.0
+      - name: Run Trivy scan for reluster
+        uses: aquasecurity/trivy-action@0.28.0
         with:
-          image-ref: thuongtruong1009/reluster-bench
+          image-ref: reluster
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+          vuln-type: "os,library"
+          severity: "CRITICAL,HIGH"
+
+      - name: Run Trivy scan for reluster-bench
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: reluster-bench
           format: table
           exit-code: "1"
           ignore-unfixed: true
@@ -117,6 +134,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      # - name: Run TruffleHog
+      #   run: trufflehog filesystem --directory . --json --redact > trufflehog-results.json
+
       - name: Run TruffleHog
         uses: trufflesecurity/trufflehog@v3.90.8
         with:
@@ -129,3 +150,4 @@ jobs:
         with:
           name: trufflehog-results
           path: trufflehog-results.json
+          compression-level: 9

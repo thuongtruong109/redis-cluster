@@ -58,6 +58,7 @@ jobs:
       - name: 🏗️ Build & Push Cluster Benchmark Image
         run: |
           docker compose -f docker-compose.cluster.yml build --progress=plain
+          # docker build -f configs/cluster/Dockerfile.bench -t $(CLT_BENCH_IMAGE) .
 
           docker tag thuongtruong1009/${{ env.IMAGE_NAME }}:latest \
             ${{ env.REGISTRY }}/${{ github.repository }}-bench:latest

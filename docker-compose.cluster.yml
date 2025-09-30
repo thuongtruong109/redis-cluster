@@ -83,12 +83,13 @@ services:
       context: .
       dockerfile: ./configs/cluster/Dockerfile.bench
     environment:
-      - CLUSTER_PASS=${REDIS_PASSWORD}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
       - REDIS_HOST=node-1
     networks:
       - redisnet
     volumes:
-      - ./benchmark-results:/benchmark-results
+      - ./benchmark-results:/results
+    restart: "no"
     depends_on:
       - node-1
       - node-2

@@ -143,7 +143,6 @@ clean:
 ci:
 	act -W .github/workflows/ci.yml --rm --pull=false --secret DOCKER_USERNAME= --secret DOCKER_PASSWORD=
 
-
 demo-ping:
 # 	docker compose -f docker-compose.cluster.dev.yml up -d --build --force-recreate node-1 node-2 node-3 node-4 node-5 node-6
 # 	docker exec -it node-1 redis-cli -a $(REDIS_PASSWORD) --cluster create 127.0.0.1:6379 127.0.0.1:6380 127.0.0.1:6381 127.0.0.1:6382 127.0.0.1:6383 127.0.0.1:6384 --cluster-replicas 1 --cluster-yes
