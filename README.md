@@ -93,6 +93,7 @@ Fork → Hack → Test → PR. Here are a few ways you can get involved:
 
 Distributed under the [Apache 2.0](LICENSE) license. Copyright (c) 2025 Thuong Truong.
 
+<!-- https://github.com/ChickenBenny/redis-cluster-docker -->
+<!-- https://github.com/ahmed-226/redis-monitor-dashboard -->
 <!-- https://medium.com/@jielim36/basic-docker-compose-and-build-a-redis-cluster-with-docker-compose-0313f063afb6 -->
 <!-- https://dev.to/hedgehog/set-up-redis-diskless-replication-359 -->
-<!-- <img src="https://skillicons.dev/icons?i=redis,docker,bash,linux,github" height="45"/> -->

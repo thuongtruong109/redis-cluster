@@ -322,3 +322,36 @@ jobs:
       - name: Notify on failure
         if: ${{ contains(needs.*.result, 'failure') }}
         run: echo "❌ One or more jobs failed! Check the logs for details."
+
+  monitor-health:
+    runs-on: ubuntu-latest
+    # if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    env:
+      REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Start Cluster services
+        run: |
+          make clt
+          make clt-init
+
+      - name: Wait for services to be ready
+        run: make clt-ready
+
+      - name: Run monitor health check
+        run: make monitor-health
+
+      - name: Collect Logs
+        run: make monitor-log
+
+      - name: Upload Logs as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-logs
+          path: monitor-logs/
+
+      - name: Shutdown cluster services
+        if: always()
+        run: make clean

@@ -3,7 +3,7 @@ export REDIS_PASSWORD
 
 HA_COMPOSE_FILE = docker-compose.ha.yml
 CLT_COMPOSE_FILE = docker-compose.cluster.yml
-DEV_COMPOSE_FILE = docker-compose.dev.yml
+TOOL_COMPOSE_FILE = docker-compose.tool.yml
 
 CLT_BENCH_DIR=benchmark-results
 REDIS_PASSWORD=redispw
@@ -23,19 +23,6 @@ validate:
 
 	chmod +x scripts/clt.sh
 	bash scripts/clt.sh validate
-
-commander:
-	@if [ -z "$$CONFIG_PATH" ]; then \
-		echo "❌ CONFIG_PATH is not set."; \
-		exit 1; \
-	fi
-	docker compose -f $(DEV_COMPOSE_FILE) up -d --force-recreate commander
-
-commander-ha:
-	@$(MAKE) commander CONFIG_PATH=ha.json
-
-commander-clt:
-	@$(MAKE) commander CONFIG_PATH=cluster.json
 
 ha:
 	docker compose -f $(HA_COMPOSE_FILE) up -d --force-recreate
@@ -136,13 +123,46 @@ clt-health:
 clean:
 	docker compose -f $(CLT_COMPOSE_FILE) down -v
 	docker compose -f $(HA_COMPOSE_FILE) down -v
-	docker compose -f $(DEV_COMPOSE_FILE) down -v
+	docker compose -f $(TOOL_COMPOSE_FILE) down -v
 	docker volume prune -f
 	rm -rf $(CLT_BENCH_DIR)
+	rm -rf monitor-logs
 
 # 	Flags: -j <job_name>
 ci:
 	act -W .github/workflows/ci.yml --rm --pull=false --secret DOCKER_USERNAME= --secret DOCKER_PASSWORD=
+
+commander:
+	@if [ -z "$$CONFIG_PATH" ]; then \
+		echo "❌ CONFIG_PATH is not set."; \
+		exit 1; \
+	fi
+	docker compose -f $(TOOL_COMPOSE_FILE) up -d --force-recreate commander
+
+commander-ha:
+	@$(MAKE) commander CONFIG_PATH=ha.json
+
+commander-clt:
+	@$(MAKE) commander CONFIG_PATH=cluster.json
+
+monitor:
+	docker compose -f $(TOOL_COMPOSE_FILE) up -d --force-recreate exporter prometheus grafana
+
+monitor-health:
+	chmod +x scripts/monitor.sh
+	bash ./scripts/monitor.sh
+
+monitor-log:
+	mkdir -p monitor-logs
+	docker compose logs node-1 > monitor-logs/node-1.log 2>&1 || true
+	docker compose logs node-2 > monitor-logs/node-2.log 2>&1 || true
+	docker compose logs node-3 > monitor-logs/node-3.log 2>&1 || true
+	docker compose logs node-4 > monitor-logs/node-4.log 2>&1 || true
+	docker compose logs node-5 > monitor-logs/node-5.log 2>&1 || true
+	docker compose logs node-6 > monitor-logs/node-6.log 2>&1 || true
+	docker compose logs exporter > monitor-logs/exporter.log 2>&1 || true
+	docker compose logs prometheus > monitor-logs/prometheus.log 2>&1 || true
+	docker compose logs grafana > monitor-logs/grafana.log 2>&1 || true
 
 demo-ping:
 # 	docker compose -f docker-compose.cluster.dev.yml up -d --build --force-recreate node-1 node-2 node-3 node-4 node-5 node-6

@@ -16,9 +16,9 @@
 - [x] 🩺 Integrate health checks for each node (v1.0.0)
 - [x] 🕵️ Scripts: memory usage, latency, slowlog checks (v1.0.0)
 - [ ] 📜 Script to automatically check logs and detect anomalies
-- [ ] 📊 Integrate Prometheus + Grafana to monitor Redis
+- [x] 📊 Integrate Prometheus + Grafana to monitor Redis
 - [ ] 🔔 Alert via Slack, Email, Telegram when a node is down/failover occurs
-- [ ] 📦 Exporter for Redis (redis_exporter)
+- [x] 📦 Exporter for Redis (redis_exporter)
 - [ ] 📺 Dashboard to display cluster/sentinel status
 - [ ] 📰 Integrate centralized logging (ELK stack, Loki, Promtail etc.)
 - [ ] 🔥 Automated Chaos Engineering workflows to automatically inject failures (kill node, network partition, disk full, etc.) to test cluster/sentinel self-healing (LitmusChaos, Gremlin, or shell script).
@@ -36,7 +36,7 @@
 
 ## 🧩 Application & Integration
 
-- [ ] 🔌 Connect the application to the cluster using a client that supports cluster mode
+- [x] 🔌 Connect the application to the cluster using a client that supports cluster mode
 - [ ] 🧪 Demo a real application using Redis Cluster (cache, pub/sub, queue)
 - [ ] 📚 Use clients that support cluster/sentinel (ioredis, redis-py, Jedis, etc.)
 - [ ] 🛠️ Write demo app for cache, pub/sub, queue

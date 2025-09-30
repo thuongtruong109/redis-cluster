@@ -1,6 +1,6 @@
 # 📝 Changelog
 
-## [v1.0.0 (2025-09-29)](https://github.com/thuongtruong109/redis-cluster/releases/tag/v1.0.0)
+## [v1.0.0 (2025-09-30)](https://github.com/thuongtruong109/redis-cluster/releases/tag/v1.0.0)
 
 ### ✨ Features
 
@@ -14,13 +14,13 @@
 - compose: Dynamic binding hostname to cluster node
 - Automatically scale out/in and re-balance nodes
 - using container names and network in Redis Cluster benchmarks CI tests
-- dockerfile: harden Dockerfile.bench with best practices
+- Dockerfile: harden benchmark with best practices
 
 ### 🛠️ CI/CD
 
-- Cluster automatically rollback when errors are detected on node
+- Cluster automatically rolls back when errors are detected on the node
 - Change build context, Fix condition run
-- Build and publish image
+- Build and publish an image
 - safely upload Trivy SARIF skip if missing in security scan
 - refactor and enhance workflow for replica/cluster tests, security scans, health checks, and notifications
 - make cluster-health-check retry count safe if artifact missing
@@ -37,12 +37,12 @@
 
 - script: |
   - Scale cluster
-  - Prepare run with bash
-  - check cluster memory usage, latency, slowlog
-- compose: Start commander container in dev
+  - Prepare to run with bash
+  - check cluster memory usage, latency, and slowlog
+- compose: Start the commander container in dev
 - Integrate health checks for each node
 - config yamllint to validate YAML files
-- setup devcontainer in VSCode dev environment
+- Set up a devcontainer in the VSCode dev environment
 - using .env file for environment variables
 
 ### 📚 Documentation
@@ -53,7 +53,7 @@
 
 ### 🏗️ Build
 
-    config: Change context dir
+- config: Change context dir
 
 **Full Changelog**: https://github.com/thuongtruong109/redis-cluster/commits/v1.0.0
 
