@@ -121,6 +121,7 @@ Fork → Hack → Test → PR. Here are a few ways you can get involved:
 
 Distributed under the [Apache 2.0](LICENSE) license. Copyright (c) 2025 Thuong Truong.
 
+<!-- https://www.freecodecamp.org/news/github-super-linter/ -->
 <!-- https://github.com/ChickenBenny/redis-cluster-docker -->
 <!-- https://github.com/ahmed-226/redis-monitor-dashboard -->
 <!-- https://medium.com/@jielim36/basic-docker-compose-and-build-a-redis-cluster-with-docker-compose-0313f063afb6 -->
